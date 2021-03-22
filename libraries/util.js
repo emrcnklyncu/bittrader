@@ -34,8 +34,14 @@ module.exports = function() {
     }
   };
 
+  function padRight(str, max, c) {
+    var self = str;
+    return self + new Array(Math.max(0, max - self.length + 1)).join(c || ' ');
+  };
+
   return {
     timeToDate,
-    formatMoney
+    formatMoney,
+    padRight
   };
 }
