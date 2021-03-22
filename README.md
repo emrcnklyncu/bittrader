@@ -2,5 +2,5 @@
 
 Using npm:
 ```shell
-$ npm i -g bittrader
+$ npm install bittrader -g
 ```
