@@ -1,25 +1,22 @@
 {
-  "name": "btctrader",
+  "name": "bittrader",
   "version": "1.0.1",
   "description": "a simple and powerful bitcoin trader",
   "keywords": [
-    "btc",
-    "bitcoin",
-    "coin",
-    "trader"
+    "bitcoin","coin","trader","coins","btc","bot","api","crypto currency","real time","btcturk","altcoins"
   ],
   "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
   "license": "MIT",
   "bin": {
-    "btctrader": "./bin/btctrader.js"
+    "bittrader": "./bin/bittrader.js"
   },
   "bugs": {
-    "url": "https://github.com/emrcnklyncu/btctrader/issues",
+    "url": "https://github.com/emrcnklyncu/bittrader/issues",
     "email": "emircan.kalyoncu@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/emrcnklyncu/btctrader.git"
+    "url": "https://github.com/emrcnklyncu/bittrader.git"
   },
   "dependencies": {
     "axios": "^0.21.1",
