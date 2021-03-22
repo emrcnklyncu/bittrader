@@ -2,5 +2,5 @@
 
 Using npm:
 ```shell
-$ npm i -g cointrader
+$ npm i -g btctrader
 ```

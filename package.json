@@ -1,20 +1,26 @@
 {
-  "name": "cointrader",
+  "name": "btctrader",
   "version": "1.0.1",
-  "description": "a simple and powerful coin trader",
+  "description": "a simple and powerful bitcoin trader",
   "keywords": [
+    "btc",
+    "bitcoin",
     "coin",
     "trader"
   ],
+  "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
+  "license": "MIT",
   "bin": {
-    "kirpi": "./bin/cointrader.js"
+    "btctrader": "./bin/btctrader.js"
+  },
+  "bugs": {
+    "url": "https://github.com/emrcnklyncu/btctrader/issues",
+    "email": "emircan.kalyoncu@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/emircankalyoncu/cointrader.git"
+    "url": "https://github.com/emrcnklyncu/btctrader.git"
   },
-  "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
-  "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
     "chalk": "^4.1.0",
