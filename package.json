@@ -1,0 +1,33 @@
+{
+  "name": "cointrader",
+  "version": "1.0.1",
+  "description": "a simple and powerful coin trader",
+  "keywords": [
+    "coin",
+    "trader"
+  ],
+  "bin": {
+    "kirpi": "./bin/cointrader.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/emircankalyoncu/cointrader.git"
+  },
+  "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "chalk": "^4.1.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^6.2.0",
+    "lowdb": "^1.0.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "technicalindicators": "^3.1.0"
+  },
+  "preferGlobal": true,
+  "engines": {
+    "node": "10.7.0",
+    "npm": "6.1.0"
+  }
+}
