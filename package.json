@@ -1,6 +1,6 @@
 {
   "name": "bittrader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "a simple and powerful bitcoin trader",
   "keywords": [
     "bitcoin",
@@ -32,14 +32,18 @@
   "dependencies": {
     "axios": "^0.21.1",
     "chalk": "^4.1.0",
+    "commander": "^7.2.0",
     "crypto": "^1.0.1",
     "dotenv": "^6.2.0",
     "lowdb": "^1.0.0",
+    "node-cron": "^3.0.0",
+    "pm2": "^4.5.5",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
+    "save": "^2.4.0",
     "technicalindicators": "^3.1.0"
   },
-  "preferGlobal": "true",
+  "preferGlobal": true,
   "engines": {
     "node": "10.7.0",
     "npm": "6.1.0"

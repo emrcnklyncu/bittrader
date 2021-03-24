@@ -3,8 +3,8 @@ const axios = require('axios');
 
 module.exports = function(apiKey=null, apiSecret=null) {
 
-    const API_KEY = apiKey;
-    const API_SECRET = apiSecret;
+    var API_KEY = apiKey;
+    var API_SECRET = apiSecret;
 
     const API_BASE = 'https://api.btcturk.com';
 
@@ -181,7 +181,9 @@ module.exports = function(apiKey=null, apiSecret=null) {
 
     // PRIVATE ENDPOINT IMPLEMENTATIONS
 
-    function getAccountBalance() {
+    function getAccountBalance(apiKey=null, apiSecret=null) {
+        if (apiKey) API_KEY=apiKey;
+        if (apiSecret) API_SECRET=apiSecret;
         const url = _constructURL(ACCOUNT_BALANCE_ENDPOINT);
         return _getAuth(url);
     }
