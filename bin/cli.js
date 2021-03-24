@@ -28,16 +28,31 @@ let init = async (args) => {
   try {
     await client.getAccountBalance(args.key, args.secret);
   } catch (e) {
-    console.info(`${chalk.red.bold('error: api key or api secret is invalid.')}`);
+    console.error(`${chalk.red.bold('error: cannot access api')}`);
+    console.error(`${chalk.red.bold(e.code, e.text)}`);
     return;
   }
   if (!ACCEPTABLE_CURRENCIES.split(',').includes(args.currency)) {
-    console.info(`${chalk.red.bold('error: not acceptable currency.')}\nacceptable currencies: ${ACCEPTABLE_CURRENCIES}`);
+    console.error(`${chalk.red.bold('error: not acceptable currency.')}\nacceptable currencies: ${ACCEPTABLE_CURRENCIES}`);
     return;
   }
   if (!cron.validate(args.expression)) {
-    console.info(`${chalk.red.bold('error: cron expression is invalid.')}\nplease click for more details of cron expression: ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}`);
+    console.error(`${chalk.red.bold('error: cron expression is invalid.')}\nplease click for more details of cron expression: ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}`);
     return;
+  }
+  let stoploss = Number.parseInt(args.stoploss, 10);
+  let targetgain = Number.parseInt(args.targetgain, 10);
+  if (Number.isNaN(stoploss) || stoploss > 20 || stoploss < 2) {
+    console.error(`${chalk.red.bold('error: stop loss ratio must be between 2 and 20.')}`);
+    return;
+  } else {
+    args.stoploss = stoploss;
+  }
+  if (Number.isNaN(targetgain) || targetgain > 20 || targetgain < 2) {
+    console.error(`${chalk.red.bold('error: target gain ratio must be between 2 and 20.')}`);
+    return;
+  } else {
+    args.targetgain = targetgain;
   }
   database.saveConfig(args);
   console.info(`${chalk.green.bold('✓ everything is ok.')}`);
@@ -96,38 +111,16 @@ let desc = () => {
     .version(package.version, '-v, --version', 'output the current version');
 
   program.command('init')
-  .requiredOption('-k, --key <key>', 'set api key')
-  .requiredOption('-s, --secret <secret>', 'set api secret')
+  .requiredOption('-k, --key <key>', 'set api key (mandatory)')
+  .requiredOption('-s, --secret <secret>', 'set api secret (mandatory)')
   .option('-c, --currency <symbol>', `set numerator currency symbol of the pair (choices: ${ACCEPTABLE_CURRENCIES})`, 'USDT')
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')})`, '*/5 * * * *')
+  .option('-l, --stoploss <ratio>', `set stop loss ratio (%) (2-20)`, 5)
+  .option('-g, --targetgain <ratio>', `set target gain ratio (%) (2-20)`, 5)
+  .option('-r, --rsi', `use relative strength index`)
+  .option('-b, --bb', `use bollinger bands`)
   .action(init);
 
-  /*
-  brew
-    .command('start')
-    .action(start);
-  brew
-    .command('stop')
-    .action(stop);
-    brew
-    .command('desc')
-    .action(desc);
-
-  // Add nested commands using `.addCommand().
-  // The command could be created separately in another module.
-
-    const heat = program.command('heat');
-    heat
-      .command('jug')
-      .action(() => {
-        console.log('heat jug');
-      });
-    heat
-      .command('pot')
-      .action(() => {
-        console.log('heat pot');
-      });
-  */
   await program.parseAsync(process.argv);
 };
 

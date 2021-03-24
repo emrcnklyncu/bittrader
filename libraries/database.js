@@ -13,6 +13,10 @@ module.exports = function() {
     db.set('config.secret', configs.secret).write();
     db.set('config.currency', configs.currency).write();
     db.set('config.expression', configs.expression).write();
+    db.set('config.stoploss', configs.stoploss).write();
+    db.set('config.targetgain', configs.targetgain).write();
+    db.set('config.rsi', configs.rsi || false).write();
+    db.set('config.bb', configs.bb || false).write();
   };
   function getConfig(config = null) {
     if (config)
