@@ -1,8 +1,0 @@
-{
-  "config": {
-    "key": "44d4b510-6db2-4a31-9bb5-3573b4121bf5",
-    "secret": "MJf3mvgws9jBJ1VmUs8fF1Mft0WJR+6n",
-    "currency": "USDT",
-    "expression": "*/5 * * * *"
-  }
-}
