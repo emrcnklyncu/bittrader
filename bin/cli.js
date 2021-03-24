@@ -57,47 +57,33 @@ let init = async (args) => {
   database.saveConfig(args);
   console.info(`${chalk.green.bold('✓ everything is ok.')}`);
 };
-let start = () => {
+let service = async (args, command) => {
   pm2.connect(function(err) {
     if (err) {
-      console.error(err)
-      process.exit(2)
+      console.error(err);
+      process.exit(2);
     }
-  
-    pm2.start({
-      script: 'task.js',
-    }, (err, apps) => {
-      pm2.disconnect()
-      if (err) { throw err }
-    })
-  })
-};
-let stop = () => {
-  pm2.connect(function(err) {
-    if (err) {
-      console.error(err)
-      process.exit(2)
+    console.info(command._name);
+    switch (command._name) {
+      case "start":
+        pm2.start({name: 'bittrader', script: 'bin/bittrader.js'}, (err, proc) => {
+          pm2.disconnect();
+        });
+        break;
+      case "stop":
+        pm2.stop('bittrader', (err, proc) => {
+          pm2.disconnect();
+        });
+        break;
+      case "restart":
+        pm2.restart('bittrader', (err, proc) => {
+          pm2.disconnect();
+        });
+        break;
+      default:
+        break;
     }
-  
-    pm2.stop('task', (err, apps) => {
-      pm2.disconnect()
-      if (err) { throw err }
-    })
-  })
-};
-let desc = () => {
-  pm2.connect(function(err) {
-    if (err) {
-      console.error(err)
-      process.exit(2)
-    }
-  
-    pm2.describe('pp', (err, apps) => {
-      console.info(err, apps);
-      pm2.disconnect()
-      if (err) { throw err }
-    })
-  })
+  });
 };
 
 /**
@@ -110,7 +96,7 @@ let desc = () => {
     .description(package.description)
     .version(package.version, '-v, --version', 'output the current version');
 
-  program.command('init')
+  program.command('init').description('can be used to set up a new or existing bittrader')
   .requiredOption('-k, --key <key>', 'set api key (mandatory)')
   .requiredOption('-s, --secret <secret>', 'set api secret (mandatory)')
   .option('-c, --currency <symbol>', `set numerator currency symbol of the pair (choices: ${ACCEPTABLE_CURRENCIES})`, 'USDT')
@@ -120,6 +106,10 @@ let desc = () => {
   .option('-r, --rsi', `use relative strength index`)
   .option('-b, --bb', `use bollinger bands`)
   .action(init);
+
+  program.command('start').description('start trader').action(service);
+  program.command('stop').description('stop trader').action(service);
+  program.command('restart').description('restart trader').action(service);
 
   await program.parseAsync(process.argv);
 };

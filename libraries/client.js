@@ -10,6 +10,7 @@ module.exports = function(apiKey=null, apiSecret=null) {
 
     // PUBLIC ENDPOINTS
     const TICKER_ENDPOINT = '/api/v2/ticker';
+    const TICKER_ENDPOINT_WITH_CURRENCY = '/api/v2/ticker/currency';
     const ORDER_BOOK_ENDPOINT = '/api/v2/orderbook';
     const TRADES_ENDPOINT = '/api/v2/trades';
     const OHLC_ENDPOINT = '/api/v2/ohlc';
@@ -146,14 +147,15 @@ module.exports = function(apiKey=null, apiSecret=null) {
 
     // PUBLIC ENDPOINT IMPLEMENTATIONS
 
-    function getPair(pair) {
-        const url = _constructURL(TICKER_ENDPOINT);
-
-        if (pair) {
-            const pairSymbol = _getPairSymbol(pair, '_');
-            url.searchParams.set('pairSymbol', pairSymbol);
+    function getPair(symbol = null) {
+        if (symbol) {
+            const url = _constructURL(TICKER_ENDPOINT_WITH_CURRENCY);
+            url.searchParams.set('symbol', symbol);
+            return _get(url);
+        } else {
+            const url = _constructURL(TICKER_ENDPOINT);
+            return _get(url);
         }
-        return _get(url);
     }
 
     function getOrderBook(pair, count=10) {
