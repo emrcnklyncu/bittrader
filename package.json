@@ -19,7 +19,7 @@
   "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
   "license": "MIT",
   "bin": {
-    "bittrader": "./bin/bittrader.js"
+    "bittrader": "./bin/cli.js"
   },
   "bugs": {
     "url": "https://github.com/emrcnklyncu/bittrader/issues",
