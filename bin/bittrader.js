@@ -5,14 +5,9 @@
  */
 const { program } = require('commander');
 const chalk = require('chalk');
-const dotenv = require('dotenv');
 const pm2 = require('pm2');
 const cron = require('node-cron');
-
-/**
- * Load environment variables from .env file, where API keys and passwords are configured.
- */
-dotenv.load({ path: 'environments/default.env' });
+const package = require('../package.json');
 
 /**
  * Import libraries.
@@ -20,6 +15,11 @@ dotenv.load({ path: 'environments/default.env' });
 const util = require('../libraries/util')();
 const database = require('../libraries/database')();
 const client = require('../libraries/client')();
+
+/**
+ * Constants.
+ */
+const ACCEPTABLE_CURRENCIES = "USDT,TRY";
 
 /**
  * Program actions.
@@ -31,8 +31,8 @@ let init = async (args) => {
     console.info(`${chalk.red.bold('error: api key or api secret is invalid.')}`);
     return;
   }
-  if (!process.env.ACCEPTABLE_CURRENCIES.split(',').includes(args.currency)) {
-    console.info(`${chalk.red.bold('error: not acceptable currency.')}\nacceptable currencies: ${process.env.ACCEPTABLE_CURRENCIES}`);
+  if (!ACCEPTABLE_CURRENCIES.split(',').includes(args.currency)) {
+    console.info(`${chalk.red.bold('error: not acceptable currency.')}\nacceptable currencies: ${ACCEPTABLE_CURRENCIES}`);
     return;
   }
   if (!cron.validate(args.expression)) {
@@ -92,13 +92,13 @@ let desc = () => {
   program
     .name('bittrader')
     .usage('[command] <options>')
-    .description(process.env.DESCRIPTION)
-    .version(process.env.VERSION, '-v, --version', 'output the current version');
+    .description(package.description)
+    .version(package.version, '-v, --version', 'output the current version');
 
   program.command('init')
   .requiredOption('-k, --key <key>', 'set api key')
   .requiredOption('-s, --secret <secret>', 'set api secret')
-  .option('-c, --currency <symbol>', `set numerator currency symbol of the pair (choices: ${process.env.ACCEPTABLE_CURRENCIES})`, 'USDT')
+  .option('-c, --currency <symbol>', `set numerator currency symbol of the pair (choices: ${ACCEPTABLE_CURRENCIES})`, 'USDT')
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')})`, '*/5 * * * *')
   .action(init);
 

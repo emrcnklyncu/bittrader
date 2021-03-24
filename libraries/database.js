@@ -8,11 +8,16 @@
  db.defaults({ config: {} }).write();
 
 module.exports = function() {
-  function saveConfig(config) {
-    db.set('config.key', config.key).write();
-    db.set('config.secret', config.secret).write();
-    db.set('config.currency', config.currency).write();
-    db.set('config.expression', config.expression).write();
+  function saveConfig(configs) {
+    db.set('config.key', configs.key).write();
+    db.set('config.secret', configs.secret).write();
+    db.set('config.currency', configs.currency).write();
+    db.set('config.expression', configs.expression).write();
+  };
+  function getConfig(config = null) {
+    if (config)
+      return db.get(`config.${config}`).value();
+    return db.get('config').value();
   };
   function getOrder(where) {
     return db.get('orders').find(where).value();
@@ -52,6 +57,7 @@ module.exports = function() {
 
   return {
     saveConfig,
+    getConfig,
     updateOrder,
     getOrder,
     getOrders,
