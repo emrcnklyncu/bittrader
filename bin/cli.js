@@ -7,6 +7,7 @@ const { program } = require('commander');
 const chalk = require('chalk');
 const pm2 = require('pm2');
 const cron = require('node-cron');
+const path = require('path');
 const package = require('../package.json');
 
 /**
@@ -66,7 +67,7 @@ let service = async (args, command) => {
     console.info(command._name);
     switch (command._name) {
       case "start":
-        pm2.start({name: 'bittrader', script: 'bin/bittrader.js'}, (err, proc) => {
+        pm2.start({name: 'bittrader', script: path.join(__dirname, 'bittrader.js')}, (err, proc) => {
           pm2.disconnect();
         });
         break;
