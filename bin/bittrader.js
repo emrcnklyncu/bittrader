@@ -16,21 +16,24 @@ const client = require('../libraries/client')(database.getConfig('key'), databas
  * Methods.
  */
 let writePairs = async function(now) {
+  let pairs = [];
   try {
-    let pairs = await client.getPair(database.getConfig('denominator'));
-    let data = {};
-    for (p in pairs) {
-      let pair = pairs[p];
-      data['denominator'] = database.getConfig('denominator');
-      data['hour'] = now.getHours();
-      data['minute'] = now.getMinutes();
-      data['time'] = now.getTime();
-      data[pair.numeratorSymbol] = pair.last;
-    }
-    database.pushPair(data);
+    pairs = await client.getPair(database.getConfig('denominator'));
   } catch (e) {
-    console.log(e);
+    console.error(`${chalk.red.bold('error: an error was encountered by api.')}`);
+    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    return;
   }
+  let data = {};
+  for (p in pairs) {
+    let pair = pairs[p];
+    data['denominator'] = database.getConfig('denominator');
+    data['hour'] = now.getHours();
+    data['minute'] = now.getMinutes();
+    data['time'] = now.getTime();
+    data[pair.numeratorSymbol] = pair.last;
+  }
+  database.pushPair(data);
 };
 let checkRSI = async function(now, numerator) {
   //14 & 16 => is required for rsi calculation
@@ -60,6 +63,4 @@ cron.schedule(database.getConfig('expression'), async () => {
   await writePairs(now);
   let rsi = await checkRSI(now, 'XRP');
   let bb = await checkBB(now, 'XRP');
-  console.info('RSI Calculation: ', rsi);
-  console.info('BB Calculation: ', bb);
 });

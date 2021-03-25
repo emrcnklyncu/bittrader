@@ -31,36 +31,48 @@ const constant = require('../libraries/constant');
   }
   database.setConfig('key', args.key);
   database.setConfig('secret', args.secret);
-  database.setConfig('status', 'connected');
+  database.setConfig('status', constant.STATUS_CONNECTED);
   console.log(`${chalk.green.bold('✓ everything is ok.')}`);
 };
 let config = async (args) => {
-  if (!ACCEPTABLE_DENOMINATORS.split(',').includes(args.denominator)) {
-    console.error(`${chalk.red.bold('error: not acceptable denominator.')}\nacceptable denominators: ${constant.ACCEPTABLE_DENOMINATORS}`);
-    return;
+  if (args.denominator) {
+    if (!constant.ACCEPTABLE_DENOMINATORS.split(',').includes(args.denominator)) {
+      console.error(`${chalk.red.bold('error: not acceptable denominator.')}\nacceptable denominators: ${constant.ACCEPTABLE_DENOMINATORS}`);
+      return;
+    } else {
+      database.setConfig('denominator', args.denominator);
+    }
   }
-  if (!cron.validate(args.expression)) {
-    console.error(`${chalk.red.bold('error: cron expression is invalid.')}\nplease click for more details of cron expression: ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}`);
-    return;
+  if (args.expression) {
+    if (!cron.validate(args.expression)) {
+      console.error(`${chalk.red.bold('error: cron expression is invalid.')}\nplease click for more details of cron expression: ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}`);
+      return;
+    } else {
+      database.setConfig('expression', args.expression);
+    }
   }
-  let stoploss = Number.parseInt(args.stoploss, 10);
-  let targetgain = Number.parseInt(args.targetgain, 10);
-  if (Number.isNaN(stoploss) || stoploss > 20 || stoploss < 2) {
-    console.error(`${chalk.red.bold('error: stop loss ratio must be between 2 and 20.')}`);
-    return;
-  } else {
-    args.stoploss = stoploss;
+  if (args.stoploss) {
+    let stoploss = Number.parseFloat(args.stoploss, 10);
+    if (Number.isNaN(stoploss) || stoploss > 20 || stoploss < 2) {
+      console.error(`${chalk.red.bold('error: stop loss ratio must be between 2 and 20.')}`);
+      return;
+    } else {
+      database.setConfig('stoploss', stoploss);
+    }
   }
-  if (Number.isNaN(targetgain) || targetgain > 20 || targetgain < 2) {
-    console.error(`${chalk.red.bold('error: target gain ratio must be between 2 and 20.')}`);
-    return;
-  } else {
-    args.targetgain = targetgain;
+  if (args.targetgain) {
+    let targetgain = Number.parseFloat(args.targetgain, 10);
+    if (Number.isNaN(targetgain) || targetgain > 20 || targetgain < 2) {
+      console.error(`${chalk.red.bold('error: target gain ratio must be between 2 and 20.')}`);
+      return;
+    } else {
+      database.setConfig('targetgain', targetgain);
+    }
   }
-  database.saveConfigs(args);
-  console.log(`${chalk.green.bold('✓ everything is ok.')}`);
+  console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
+  await callproc(null, {_name: 'restart'});
 };
-let service = async (args, command) => {
+let callproc = async (args, command) => {
   pm2.connect(function(err) {
     if (err) {
       console.error(err);
@@ -70,16 +82,22 @@ let service = async (args, command) => {
       case 'start':
         pm2.start({name: 'bittrader', script: path.join(__dirname, 'bittrader.js')}, (err, proc) => {
           pm2.disconnect();
+          database.setConfig('status', constant.STATUS_STARTED);
+          console.log(`${chalk.green.bold('✓ trader started.')}`);
         });
         break;
       case 'stop':
         pm2.stop('bittrader', (err, proc) => {
           pm2.disconnect();
+          database.setConfig('status', constant.STATUS_STOPPED);
+          console.log(`${chalk.green.bold('✓ trader stopped.')}`);
         });
         break;
       case 'restart':
         pm2.restart('bittrader', (err, proc) => {
           pm2.disconnect();
+          database.setConfig('status', constant.STATUS_RESTARTED);
+          console.log(`${chalk.green.bold('✓ trader restarted.')}`);
         });
         break;
       default:
@@ -103,24 +121,22 @@ let service = async (args, command) => {
   .requiredOption('-s, --secret <secret>', 'set api secret (mandatory)')
   .action(connect);
 
-  program.command('config').description('can be used to set up bittrader')
-  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS})`, 'USDT')
-  .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')})`, '*/5 * * * *')
-  .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20)`, 2)
-  .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20)`, 2)
+  program.command('config').description('can be used to set up trader')
+  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: USDT)`)
+  .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
+  .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20) (default: ${constant.DEFAULT_STOP_LOSS_RATIO})`)
+  .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20) (default: ${constant.DEFAULT_TARGET_GAIN_RATIO})`)
   .action(config);
 
-  program.command('start').description('start trader').action(service);
-  program.command('stop').description('stop trader').action(service);
-  program.command('restart').description('restart trader').action(service);
+  program.command('start').description('start trader').action(callproc);
+  program.command('stop').description('stop trader').action(callproc);
+  program.command('restart').description('restart trader').action(callproc);
 
   //alışta bb min altı
   //satışta bb max üstü
   //
 
   /**
-   * connect
-   * config
    * status
    * transactions
    */

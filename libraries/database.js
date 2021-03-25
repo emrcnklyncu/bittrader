@@ -1,7 +1,7 @@
 const path = require('path');
 const low = require('lowdb');
 const lowfs = require('lowdb/adapters/FileSync');
-const lowadapter = new lowfs('./bittrader.json');
+const lowadapter = new lowfs(path.join(__dirname, '..', 'databases', 'bittrader.json'));
 const db = low(lowadapter);
 
 db.defaults({ config: {}, pairs: [] }).write();
