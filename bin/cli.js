@@ -79,9 +79,10 @@ let config = async (args) => {
     }
   }
   console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
-  await callproc(null, {_name: 'restart'});
+  if (constant.STATUS_STARTED == database.getConfig('status')) callproc(null, {name: 'restart'});
 };
-let callproc = async (args, command) => {
+let callproc = async (args, proc) => {
+  if (proc && proc._name) proc.name = proc._name;
   if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
     console.error(`${chalk.red.bold('error: trader is not yet connected to api. please use the [connect] command first.')}`);
     return;
@@ -91,7 +92,7 @@ let callproc = async (args, command) => {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       process.exit(2);
     }
-    switch (command._name) {
+    switch (proc.name) {
       case 'start':
         if (!database.getConfig('status') || constant.STATUS_STARTED == database.getConfig('status')) {
           pm2.disconnect();
