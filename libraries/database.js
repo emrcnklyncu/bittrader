@@ -3,8 +3,16 @@ const low = require('lowdb');
 const lowfs = require('lowdb/adapters/FileSync');
 const lowadapter = new lowfs(path.join(__dirname, '..', 'databases', 'bittrader.json'));
 const db = low(lowadapter);
+const constant = require('./constant');
 
-db.defaults({ config: {}, pairs: [] }).write();
+db.defaults({ config: {
+  status: constant.STATUS_BEGINNED,
+  denominator: constant.DEFAULT_DENOMINATOR,
+  expression: constant.DEFAULT_EXPRESSION,
+  stoploss: constant.DEFAULT_STOP_LOSS_RATIO,
+  targetgain: constant.DEFAULT_TARGET_GAIN_RATIO,
+  orderamount: constant.DEFAULT_ORDER_AMOUNT
+}, orders: [], pairs: [] }).write();
 
 module.exports = function() {
   function getConfig(config = null) {

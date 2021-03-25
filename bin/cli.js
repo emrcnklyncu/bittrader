@@ -69,38 +69,79 @@ let config = async (args) => {
       database.setConfig('targetgain', targetgain);
     }
   }
+  if (args.orderamount) {
+    let orderamount = Number.parseFloat(args.orderamount, 10);
+    if (Number.isNaN(orderamount) || orderamount < 20) {
+      console.error(`${chalk.red.bold('error: order amount must be greather then 20.')}`);
+      return;
+    } else {
+      database.setConfig('orderamount', orderamount);
+    }
+  }
   console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
   await callproc(null, {_name: 'restart'});
 };
 let callproc = async (args, command) => {
+  if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
+    console.error(`${chalk.red.bold('error: trader is not yet connected to api. please use the [connect] command first.')}`);
+    return;
+  }
   pm2.connect(function(err) {
     if (err) {
-      console.error(err);
+      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       process.exit(2);
     }
     switch (command._name) {
       case 'start':
-        pm2.start({name: 'bittrader', script: path.join(__dirname, 'bittrader.js')}, (err, proc) => {
+        if (!database.getConfig('status') || constant.STATUS_STARTED == database.getConfig('status')) {
           pm2.disconnect();
-          database.setConfig('status', constant.STATUS_STARTED);
-          console.log(`${chalk.green.bold('✓ trader started.')}`);
-        });
+          console.error(`${chalk.red.bold('error: trader has already started.')}`);
+        } else {
+          pm2.start({name: 'bittrader', script: path.join(__dirname, 'bittrader.js')}, (err, proc) => {
+            pm2.disconnect();
+            if (err) {
+              console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
+            } else {
+              database.setConfig('status', constant.STATUS_STARTED);
+              console.log(`${chalk.green.bold('✓ trader started.')}`);
+            }
+          });
+        }
         break;
       case 'stop':
-        pm2.stop('bittrader', (err, proc) => {
+        if (!database.getConfig('status') || constant.STATUS_STOPPED == database.getConfig('status')) {
           pm2.disconnect();
-          database.setConfig('status', constant.STATUS_STOPPED);
-          console.log(`${chalk.green.bold('✓ trader stopped.')}`);
-        });
+          console.error(`${chalk.red.bold('error: trader has already stopped.')}`);
+        } else {
+          pm2.stop('bittrader', (err, proc) => {
+            pm2.disconnect();
+            if (err) {
+              console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
+            } else {
+              database.setConfig('status', constant.STATUS_STOPPED);
+              console.log(`${chalk.green.bold('✓ trader stopped.')}`);
+            }
+          });
+        }
         break;
       case 'restart':
-        pm2.restart('bittrader', (err, proc) => {
+        if (!database.getConfig('status') || constant.STATUS_STARTED != database.getConfig('status')) {
           pm2.disconnect();
-          database.setConfig('status', constant.STATUS_RESTARTED);
-          console.log(`${chalk.green.bold('✓ trader restarted.')}`);
-        });
+          console.error(`${chalk.red.bold('error: trader is not yet started. please use the [start] command.')}`);
+        } else {
+          pm2.restart('bittrader', (err, proc) => {
+            pm2.disconnect();
+            if (err) {
+              console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
+            } else {
+              database.setConfig('status', constant.STATUS_RESTARTED);
+              console.log(`${chalk.green.bold('✓ trader restarted.')}`);
+            }
+          });
+        }
         break;
       default:
+        pm2.disconnect();
         break;
     }
   });
@@ -122,10 +163,11 @@ let callproc = async (args, command) => {
   .action(connect);
 
   program.command('config').description('can be used to set up trader')
-  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: USDT)`)
+  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
   .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20) (default: ${constant.DEFAULT_STOP_LOSS_RATIO})`)
   .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20) (default: ${constant.DEFAULT_TARGET_GAIN_RATIO})`)
+  .option('-a, --orderamount <amount>', `set order amount for purchases (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
   .action(config);
 
   program.command('start').description('start trader').action(callproc);
@@ -138,7 +180,8 @@ let callproc = async (args, command) => {
 
   /**
    * status
-   * transactions
+   * orders
+   * balance
    */
 
   await program.parseAsync(process.argv);

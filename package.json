@@ -20,7 +20,11 @@
     "real time",
     "btcturk",
     "altcoins",
-    "cli"
+    "cli",
+    "command-line interface",
+    "market",
+    "order",
+    "stock market"
   ],
   "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
   "license": "MIT",
