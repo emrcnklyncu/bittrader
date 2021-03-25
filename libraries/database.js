@@ -1,73 +1,38 @@
-/**
- * Module dependencies.
- */
- const low = require('lowdb');
- const lowfs = require('lowdb/adapters/FileSync');
- const lowadapter = new lowfs('./bittrader.json');
- const db = low(lowadapter);
- db.defaults({ config: {} }).write();
+const path = require('path');
+const low = require('lowdb');
+const lowfs = require('lowdb/adapters/FileSync');
+const lowadapter = new lowfs('./bittrader.json');
+const db = low(lowadapter);
+
+db.defaults({ config: {}, pairs: [] }).write();
 
 module.exports = function() {
-  function saveConfig(configs) {
-    db.set('config.key', configs.key).write();
-    db.set('config.secret', configs.secret).write();
-    db.set('config.currency', configs.currency).write();
-    db.set('config.expression', configs.expression).write();
-    db.set('config.stoploss', configs.stoploss).write();
-    db.set('config.targetgain', configs.targetgain).write();
-    db.set('config.rsi', configs.rsi || false).write();
-    db.set('config.bb', configs.bb || false).write();
-  };
   function getConfig(config = null) {
     if (config)
       return db.get(`config.${config}`).value();
     return db.get('config').value();
   };
-  function getOrder(where) {
-    return db.get('orders').find(where).value();
+  function setConfig(config, value) {
+    if (config)
+      db.set(`config.${config}`, value).write();
   };
-  function getOrders(where) {
-    if (where) return db.get('orders').filter(where).sortBy('buy').reverse().value();
-    return db.get('orders').sortBy('buy').reverse().value();
-  };
-  function saveOrder(order) {
-    order.utc = new Date().getTime();
-    db.get('orders').push(order).write();
-  };
-  function updateOrder(where, order) {
-    order._utc = new Date().getTime();
-    db.get('orders').find(where).assign(order).write();
-  };
-  function getPairs() {
+  function getPairs(minute, limit) {
     db.read();
-    let pair = db.get('pairs').sortBy('utc').reverse().take(1).value();
-    let pairs = [];
-    let utc = null;
-    for (i in pair[0]) {
-      if (i == 'utc') utc = pair[0][i];
-      else pairs.push({pair: i, last: pair[0][i]});
-    }
-    for (i in pairs) pairs[i].utc = utc;
-    return pairs;
-  };
-  function savePair(pair) {
-    pair.utc = new Date().getTime();
-    db.get('pairs').push(pair).write();
+    return db.get('pairs').sortBy('time').reverse().take(limit).value();
+    //return db.get('pairs').filter({minute: minute}).sortBy('time').reverse().take(limit).value();
   };
   function removePairs(time) {
-    db.get('pairs').remove(pair => (new Date().getTime() - time) > pair.utc).write();
+    db.get('pairs').remove(pair => time > pair.time).write();
+  };
+  function pushPair(pair) {
+    db.get('pairs').push(pair).write();
   };
 
-
   return {
-    saveConfig,
     getConfig,
-    updateOrder,
-    getOrder,
-    getOrders,
-    saveOrder,
+    setConfig,
     getPairs,
-    savePair,
-    removePairs
+    removePairs,
+    pushPair,
   };
 };

@@ -16,16 +16,12 @@ const package = require('../package.json');
 const util = require('../libraries/util')();
 const database = require('../libraries/database')();
 const client = require('../libraries/client')();
-
-/**
- * Constants.
- */
-const ACCEPTABLE_CURRENCIES = "USDT,TRY";
+const constant = require('../libraries/constant');
 
 /**
  * Program actions.
  */
-let init = async (args) => {
+ let connect = async (args) => {
   try {
     await client.getAccountBalance(args.key, args.secret);
   } catch (e) {
@@ -33,8 +29,14 @@ let init = async (args) => {
     console.error(`${chalk.red.bold(e.code, e.text)}`);
     return;
   }
-  if (!ACCEPTABLE_CURRENCIES.split(',').includes(args.currency)) {
-    console.error(`${chalk.red.bold('error: not acceptable currency.')}\nacceptable currencies: ${ACCEPTABLE_CURRENCIES}`);
+  database.setConfig('key', args.key);
+  database.setConfig('secret', args.secret);
+  database.setConfig('status', 'connected');
+  console.log(`${chalk.green.bold('✓ everything is ok.')}`);
+};
+let config = async (args) => {
+  if (!ACCEPTABLE_DENOMINATORS.split(',').includes(args.denominator)) {
+    console.error(`${chalk.red.bold('error: not acceptable denominator.')}\nacceptable denominators: ${constant.ACCEPTABLE_DENOMINATORS}`);
     return;
   }
   if (!cron.validate(args.expression)) {
@@ -55,8 +57,8 @@ let init = async (args) => {
   } else {
     args.targetgain = targetgain;
   }
-  database.saveConfig(args);
-  console.info(`${chalk.green.bold('✓ everything is ok.')}`);
+  database.saveConfigs(args);
+  console.log(`${chalk.green.bold('✓ everything is ok.')}`);
 };
 let service = async (args, command) => {
   pm2.connect(function(err) {
@@ -64,19 +66,18 @@ let service = async (args, command) => {
       console.error(err);
       process.exit(2);
     }
-    console.info(command._name);
     switch (command._name) {
-      case "start":
+      case 'start':
         pm2.start({name: 'bittrader', script: path.join(__dirname, 'bittrader.js')}, (err, proc) => {
           pm2.disconnect();
         });
         break;
-      case "stop":
+      case 'stop':
         pm2.stop('bittrader', (err, proc) => {
           pm2.disconnect();
         });
         break;
-      case "restart":
+      case 'restart':
         pm2.restart('bittrader', (err, proc) => {
           pm2.disconnect();
         });
@@ -97,20 +98,32 @@ let service = async (args, command) => {
     .description(package.description)
     .version(package.version, '-v, --version', 'output the current version');
 
-  program.command('init').description('can be used to set up a new or existing bittrader')
+  program.command('connect').description('connnect to api')
   .requiredOption('-k, --key <key>', 'set api key (mandatory)')
   .requiredOption('-s, --secret <secret>', 'set api secret (mandatory)')
-  .option('-c, --currency <symbol>', `set numerator currency symbol of the pair (choices: ${ACCEPTABLE_CURRENCIES})`, 'USDT')
+  .action(connect);
+
+  program.command('config').description('can be used to set up bittrader')
+  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS})`, 'USDT')
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')})`, '*/5 * * * *')
-  .option('-l, --stoploss <ratio>', `set stop loss ratio (%) (2-20)`, 5)
-  .option('-g, --targetgain <ratio>', `set target gain ratio (%) (2-20)`, 5)
-  .option('-r, --rsi', `use relative strength index`)
-  .option('-b, --bb', `use bollinger bands`)
-  .action(init);
+  .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20)`, 2)
+  .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20)`, 2)
+  .action(config);
 
   program.command('start').description('start trader').action(service);
   program.command('stop').description('stop trader').action(service);
   program.command('restart').description('restart trader').action(service);
+
+  //alışta bb min altı
+  //satışta bb max üstü
+  //
+
+  /**
+   * connect
+   * config
+   * status
+   * transactions
+   */
 
   await program.parseAsync(process.argv);
 };

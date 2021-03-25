@@ -39,9 +39,25 @@ module.exports = function() {
     return self + new Array(Math.max(0, max - self.length + 1)).join(c || ' ');
   };
 
+  function arrayToObject(array) {
+    var output = {};
+    for (i in array) {
+      item = array[i];
+      for (const [key, value] of Object.entries(item)) {
+        if (output[key]) {
+          output[key] = output[key].concat(item[key]);
+        } else {
+          output[key] = [item[key]];
+        }
+      }
+    };
+    return output;
+  };
+
   return {
     timeToDate,
     formatMoney,
-    padRight
+    padRight,
+    arrayToObject
   };
 }
