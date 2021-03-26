@@ -24,10 +24,9 @@ module.exports = function() {
     if (config)
       db.set(`config.${config}`, value).write();
   };
-  function getPairs(minute, limit) {
+  function getPairs(denominator, minute, limit) {
     db.read();
-    return db.get('pairs').sortBy('time').reverse().take(limit).value();
-    //return db.get('pairs').filter({minute: minute}).sortBy('time').reverse().take(limit).value();
+    return db.get('pairs').filter({denominator: denominator, minute: minute}).sortBy('time').reverse().take(limit).value();
   };
   function removePairs(time) {
     db.get('pairs').remove(pair => time > pair.time).write();

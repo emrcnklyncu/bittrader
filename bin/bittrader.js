@@ -35,6 +35,10 @@ let writePairs = async function(now) {
   }
   database.pushPair(data);
 };
+let removePairs = async function(now) {
+  let time = 2 * 24 * 60 * 60 * 1000;//2 days
+  database.removePairs(now - time);
+};
 let checkRSI = async function(now, numerator) {
   //14 & 16 => is required for rsi calculation
   let pairs = database.getPairs(now.getMinutes(), 16);
@@ -61,6 +65,7 @@ let checkBB = async function(now, numerator) {
 cron.schedule(database.getConfig('expression'), async () => {
   var now = new Date();
   await writePairs(now);
+  await removePairs(now);
   let rsi = await checkRSI(now, 'XRP');
   let bb = await checkBB(now, 'XRP');
 });
