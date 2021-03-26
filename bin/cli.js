@@ -31,8 +31,9 @@ const constant = require('../libraries/constant');
   }
   database.setConfig('key', args.key);
   database.setConfig('secret', args.secret);
-  database.setConfig('status', constant.STATUS_CONNECTED);
-  console.log(`${chalk.green.bold('✓ everything is ok.')}`);
+  console.log(`${chalk.green.bold('✓ api connected.')}`);
+  if (constant.STATUS_STARTED == database.getConfig('status')) callproc(null, {name: 'restart'});
+  else database.setConfig('status', constant.STATUS_CONNECTED);
 };
 let config = async (args) => {
   if (args.denominator) {
@@ -80,6 +81,7 @@ let config = async (args) => {
   }
   console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
   if (constant.STATUS_STARTED == database.getConfig('status')) callproc(null, {name: 'restart'});
+  else database.setConfig('status', constant.STATUS_CONFIGURED);
 };
 let balance = async (args) => {
   if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
@@ -105,6 +107,12 @@ let balance = async (args) => {
     console.error(`${chalk.red.bold(e.code, e.text)}`);
     return;
   }
+};
+let status = async (args) => {
+  let text = util.padCenter(database.getConfig('status'), 12);
+  console.log(`|${util.padRight('', text.length + 2, '-')}|`);
+  console.log(`| ${text} |`);
+  console.log(`|${util.padRight('', text.length + 2, '-')}|`);
 };
 let callproc = async (args, proc) => {
   if (proc && proc._name) proc.name = proc._name;
@@ -203,6 +211,8 @@ let callproc = async (args, proc) => {
   program.command('start').description('start trader').action(callproc);
   program.command('stop').description('stop trader').action(callproc);
   program.command('restart').description('restart trader').action(callproc);
+
+  program.command('status').description('show trader status').action(status);
   
 
   //alışta bb min altı
@@ -210,7 +220,6 @@ let callproc = async (args, proc) => {
   //
 
   /**
-   * status
    * orders
    */
 

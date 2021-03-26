@@ -44,6 +44,12 @@ module.exports = function() {
     return new Array(Math.max(0, max - self.length + 1)).join(c || ' ') + self;
   };
 
+  function padCenter(str, max, c) {
+    var self = str;
+    var e = Math.floor((max - self.length + 1) / 2);
+    return new Array(Math.max(0, e)).join(c || ' ') + self + new Array(Math.max(0, e)).join(c || ' ');
+  };
+
   function arrayToObject(array) {
     var output = {};
     for (i in array) {
@@ -64,6 +70,7 @@ module.exports = function() {
     formatMoney,
     padRight,
     padLeft,
+    padCenter,
     arrayToObject
   };
 }
