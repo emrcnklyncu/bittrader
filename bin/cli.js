@@ -201,7 +201,7 @@ let callproc = async (args, proc) => {
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
   .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20) (default: ${constant.DEFAULT_STOP_LOSS_RATIO})`)
   .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20) (default: ${constant.DEFAULT_TARGET_GAIN_RATIO})`)
-  .option('-a, --orderamount <amount>', `set order amount for purchases (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
+  .option('-a, --orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
   .action(config);
 
   program.command('balance').description('show balance')
@@ -213,11 +213,6 @@ let callproc = async (args, proc) => {
   program.command('restart').description('restart trader').action(callproc);
 
   program.command('status').description('show trader status').action(status);
-  
-
-  //alışta bb min altı
-  //satışta bb max üstü
-  //
 
   /**
    * orders
@@ -227,4 +222,3 @@ let callproc = async (args, proc) => {
 };
 
 main();
-  

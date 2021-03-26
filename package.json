@@ -1,6 +1,6 @@
 {
   "name": "bittrader",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A simple and powerful bitcoin trader.",
   "keywords": [
     "bitcoin",
@@ -42,7 +42,7 @@
     "XTZ",
     "TRX",
     "UNI",
-    "SDC" 
+    "USDC" 
   ],
   "author": "Emircan Kalyoncu <emircan.kalyoncu@gmail.com>",
   "license": "MIT",
