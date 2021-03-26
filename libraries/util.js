@@ -39,6 +39,11 @@ module.exports = function() {
     return self + new Array(Math.max(0, max - self.length + 1)).join(c || ' ');
   };
 
+  function padLeft(str, max, c) {
+    var self = str;
+    return new Array(Math.max(0, max - self.length + 1)).join(c || ' ') + self;
+  };
+
   function arrayToObject(array) {
     var output = {};
     for (i in array) {
@@ -58,6 +63,7 @@ module.exports = function() {
     timeToDate,
     formatMoney,
     padRight,
+    padLeft,
     arrayToObject
   };
 }

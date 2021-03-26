@@ -81,6 +81,31 @@ let config = async (args) => {
   console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
   if (constant.STATUS_STARTED == database.getConfig('status')) callproc(null, {name: 'restart'});
 };
+let balance = async (args) => {
+  if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
+    console.error(`${chalk.red.bold('error: trader is not yet connected to api. please use the [connect] command first.')}`);
+    return;
+  }
+  try {
+    let balances = await client.getAccountBalance(database.getConfig('key'), database.getConfig('secret'));
+    console.log(`|${util.padRight('', 44, '-')}|`);
+    for (b in balances) {
+      let balance = balances[b];
+      if (args.hide) {
+        let fbalance = Number.parseFloat(balance.balance, 10);
+        if (fbalance <= 0.0001) {
+          continue;
+        }
+      }
+      console.log(`| ${util.padRight(balance.asset, 5)} | ${util.padRight(balance.assetname, 15)} | ${util.padLeft(util.formatMoney(balance.balance, balance.precision), 16)} |`);
+    }
+    console.log(`|${util.padRight('', 44, '-')}|`);
+  } catch (e) {
+    console.error(`${chalk.red.bold('error: an error was encountered by api.')}`);
+    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    return;
+  }
+};
 let callproc = async (args, proc) => {
   if (proc && proc._name) proc.name = proc._name;
   if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
@@ -171,9 +196,14 @@ let callproc = async (args, proc) => {
   .option('-a, --orderamount <amount>', `set order amount for purchases (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
   .action(config);
 
+  program.command('balance').description('show balance')
+  .option('-h, --hide', `hide low balances`)
+  .action(balance);
+
   program.command('start').description('start trader').action(callproc);
   program.command('stop').description('stop trader').action(callproc);
   program.command('restart').description('restart trader').action(callproc);
+  
 
   //alışta bb min altı
   //satışta bb max üstü
@@ -182,7 +212,6 @@ let callproc = async (args, proc) => {
   /**
    * status
    * orders
-   * balance
    */
 
   await program.parseAsync(process.argv);
