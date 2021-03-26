@@ -9,8 +9,6 @@ db.defaults({ config: {
   status: constant.STATUS_BEGINNED,
   denominator: constant.DEFAULT_DENOMINATOR,
   expression: constant.DEFAULT_EXPRESSION,
-  stoploss: constant.DEFAULT_STOP_LOSS_RATIO,
-  targetgain: constant.DEFAULT_TARGET_GAIN_RATIO,
   orderamount: constant.DEFAULT_ORDER_AMOUNT
 }, orders: [], pairs: [] }).write();
 

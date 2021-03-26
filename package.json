@@ -1,6 +1,6 @@
 {
   "name": "bittrader",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A simple and powerful bitcoin trader.",
   "keywords": [
     "bitcoin",
@@ -15,8 +15,6 @@
     "numerator",
     "relative strength index", "rsi",
     "bollinger bands", "bb",
-    "stop loss",
-    "target gain",
     "real time",
     "btcturk",
     "altcoins",
@@ -24,6 +22,7 @@
     "command-line interface",
     "market",
     "order",
+    "limit",
     "stock market",
     "TRY",
     "BTC",

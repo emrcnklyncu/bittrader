@@ -52,24 +52,6 @@ let config = async (args) => {
       database.setConfig('expression', args.expression);
     }
   }
-  if (args.stoploss) {
-    let stoploss = Number.parseFloat(args.stoploss, 10);
-    if (Number.isNaN(stoploss) || stoploss > 20 || stoploss < 2) {
-      console.error(`${chalk.red.bold('error: stop loss ratio must be between 2 and 20.')}`);
-      return;
-    } else {
-      database.setConfig('stoploss', stoploss);
-    }
-  }
-  if (args.targetgain) {
-    let targetgain = Number.parseFloat(args.targetgain, 10);
-    if (Number.isNaN(targetgain) || targetgain > 20 || targetgain < 2) {
-      console.error(`${chalk.red.bold('error: target gain ratio must be between 2 and 20.')}`);
-      return;
-    } else {
-      database.setConfig('targetgain', targetgain);
-    }
-  }
   if (args.orderamount) {
     let orderamount = Number.parseFloat(args.orderamount, 10);
     if (Number.isNaN(orderamount) || orderamount < 20) {
@@ -199,8 +181,6 @@ let callproc = async (args, proc) => {
   program.command('config').description('can be used to set up trader')
   .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
   .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
-  .option('-s, --stoploss <ratio>', `set stop loss ratio (%) (2-20) (default: ${constant.DEFAULT_STOP_LOSS_RATIO})`)
-  .option('-t, --targetgain <ratio>', `set target gain ratio (%) (2-20) (default: ${constant.DEFAULT_TARGET_GAIN_RATIO})`)
   .option('-a, --orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
   .action(config);
 

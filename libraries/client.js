@@ -209,15 +209,15 @@ module.exports = function(apiKey=null, apiSecret=null) {
         return _getAuth(url);
     }
 
-    function submitMarketOrder(pair, orderType, quantity) {
+    function submitMarketOrder(numerator, denominator, orderType, quantity) {
         const url = _constructURL(ORDER_ENDPOINT);
 
-        const pairSymbol = _getPairSymbol(pair);
+        const pairSymbol = `${numerator}${del}${denominator}`;
         const orderMethod = 'market';
 
         const data = { quantity, orderMethod, orderType, pairSymbol };
 
-        console.log('Order process detail: ', data);
+        console.log('Order details: ', data);
 
         let count = 0;
         let trycount = 4;
@@ -240,10 +240,10 @@ module.exports = function(apiKey=null, apiSecret=null) {
         });
     }
 
-    function submitLimitOrder(pair, orderType, price, quantity) {
+    function submitLimitOrder(numerator, denominator, orderType, quantity, price) {
         const url = _constructURL(ORDER_ENDPOINT);
 
-        const pairSymbol = _getPairSymbol(pair);
+        const pairSymbol = `${numerator}${del}${denominator}`;
         const orderMethod = 'limit';
 
         const data = {
@@ -254,7 +254,27 @@ module.exports = function(apiKey=null, apiSecret=null) {
             pairSymbol
         };
 
-        return _post(url, data);
+        console.log('Order details: ', data);
+
+        let count = 0;
+        let trycount = 4;
+        let tryms = 2500;
+        return new Promise((resolve, reject) => {
+            let tx = setInterval(async function() {
+                count++;
+                try {
+                    let response = await _post(url, data);
+                    clearInterval(tx);
+                    resolve(response);
+                } catch (error) {
+                    if ((count > trycount) || (error && 400 == error.code))  {
+                        clearInterval(tx);
+                        reject(error);
+                    }
+                    else console.log('The order process failed, Retrying...');
+                }
+            }, tryms);
+        });
     }
 
     /*
