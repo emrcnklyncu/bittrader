@@ -32,6 +32,17 @@ module.exports = function() {
   function pushPair(pair) {
     db.get('pairs').push(pair).write();
   };
+  function getOrders(where) {
+    db.read();
+    if (where) return db.get('orders').filter(where).sortBy('buy').reverse().value();
+    return db.get('orders').sortBy('buy').reverse().value();
+  };
+  function pushOrder(order) {
+    db.get('orders').push(order).write();
+  };
+  function updateOrder(where, order) {
+    db.get('orders').find(where).assign(order).write();
+  };
 
   return {
     getConfig,
@@ -39,5 +50,8 @@ module.exports = function() {
     getPairs,
     removePairs,
     pushPair,
+    getOrders,
+    pushOrder,
+    updateOrder
   };
 };

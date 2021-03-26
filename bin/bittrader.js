@@ -63,13 +63,70 @@ let checkBB = async function(pairs) {
     return false;
   }
 };
-let buy = async function() {
-  
+let buy = async function(now, numerator) {
+  let buy = null;
+  /**
+   * buy
+   */
+  try {
+    buy = await client.submitMarketOrder(numerator, database.getConfig('denominator'), 'buy', database.getConfig('orderamount'));
+  } catch (e) {
+    console.error(`${chalk.red.bold('error: an error was encountered by api for buy.')}`);
+    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    return;
+  }
+  /**
+   * reconciliation
+   */
+  let tx = setInterval(async function() {
+    try {
+      let transactions = await client.getTransactions();
+      let result = transactions.find(transaction => transaction.orderId == buy.id);
+      if (result) {
+        database.pushOrder({ buy: result.orderId, buytrx: result, sell: null, selltrx: null, numerator: result.numeratorSymbol, denominator: result.denominatorSymbol, time: now.getTime()});
+        console.log(`${util.formatMoney(result.amount, 4)} ${result.numeratorSymbol}s at a value of ${util.formatMoney(result.price, 4)} were purchased on ${util.timeToDate(result.timestamp)}.`);
+      }
+      clearInterval(tx);
+    } catch (error) {
+      console.error(`${chalk.red.bold('error: an error was encountered by api for reconciliation.')}`);
+      console.error(`${chalk.red.bold(e.code, e.text)}`);
+    }
+  }, 2500);
 };
-let sell = async function() {
-
+let sell = async function(now, numerator) {
+  let orders = database.getOrders({ sell: null, numerator: numerator });
+  for (o in orders) {
+    let order = orders[o];
+    let sell = null;
+    /**
+    * sell
+    */
+    try {
+      sell = await client.submitMarketOrder(numerator, database.getConfig('denominator'), 'sell', Math.abs(Number(order.buytrx.amount)));
+    } catch (e) {
+      console.error(`${chalk.red.bold('error: an error was encountered by api for sell.')}`);
+      console.error(`${chalk.red.bold(e.code, e.text)}`);
+      return;
+    }
+    /**
+     * reconciliation
+     */
+    let tx = setInterval(async function() {
+      try {
+        let transactions = await client.getTransactions();
+        let result = transactions.find(transaction => transaction.orderId == sell.id);
+        if (result) {
+          database.updateOrder({buy: order.buy}, {sell: result.orderId, selltrx: result, time: now.getTime()});
+          console.log(`${util.formatMoney(result.amount, 4)} ${result.numeratorSymbol}s at a value of ${util.formatMoney(result.price, 4)} were sold on ${util.timeToDate(result.timestamp)}.`);
+        }
+        clearInterval(tx);
+      } catch (error) {
+        console.error(`${chalk.red.bold('error: an error was encountered by api for reconciliation.')}`);
+        console.error(`${chalk.red.bold(e.code, e.text)}`);
+      }
+    }, 2500);
+  }
 };
-
 /**
  * Run controller job.
  */
@@ -85,10 +142,10 @@ cron.schedule(database.getConfig('expression'), async () => {
     if (pairs[0] && rsi[0] && rsi[1] && bb[0]) {
       if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > pairs[0]) {//signal for buy
         console.log(chalk.green.bold(`signal for ${numerator} buy`));
-        await buy();
+        //await buy(now, numerator);
       } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < pairs[0]) {//signal for sell
         console.log(chalk.red.bold(`signal for ${numerator} sell`));
-        await sell();
+        //await sell(now, numerator);
       }
     }
   }

@@ -190,7 +190,9 @@ module.exports = function(apiKey=null, apiSecret=null) {
         return _getAuth(url);
     }
 
-    function getTransactions() {
+    function getTransactions(apiKey=null, apiSecret=null) {
+        if (apiKey) API_KEY=apiKey;
+        if (apiSecret) API_SECRET=apiSecret;
         const url = _constructURL(USER_TRANSACTIONS_ENDPOINT);
         return _getAuth(url);
     }

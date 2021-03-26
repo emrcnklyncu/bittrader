@@ -90,6 +90,45 @@ let balance = async (args) => {
     return;
   }
 };
+let order = async (args) => {
+  if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
+    console.error(`${chalk.red.bold('error: trader is not yet connected to api. please use the [connect] command first.')}`);
+    return;
+  }
+  try {
+    let orders = database.getOrders();
+    if (orders && orders.length > 0) {
+      console.log(`|${util.padRight('', 128, '-')}|`);
+      console.log(`| ${util.padRight('pair', 9)} | ${util.padLeft('price', 16)} | ${util.padLeft('amount', 16)} | ${util.padLeft('expense', 16)} | ${util.padLeft('income', 16)} | ${util.padLeft('gain/loss', 16)} | ${util.padRight('time', 19)} |`);
+      console.log(`|${util.padRight('', 128, '-')}|`);
+      for (t in orders) {
+        let tx = orders[t];
+        
+        if (tx.buytrx && !tx.selltrx) {
+          let expense = (Math.abs(Number(tx.buytrx.price)) * Math.abs(Number(tx.buytrx.amount))) + Math.abs(Number(tx.buytrx.fee)) + Math.abs(Number(tx.buytrx.tax));
+
+          let text = `| ${util.padRight(tx.numeratorSymbol+'/'+tx.denominatorSymbol, 9)} | ${util.padLeft(util.formatMoney(tx.buytrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.buytrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft('- not sold -', 16)} | ${util.padLeft('- not sold -', 16)} | ${util.timeToDate(tx.time)} |`;
+          console.log(text);
+        }
+        if (tx.buytrx && tx.selltrx) {
+          let expense = (Math.abs(Number(tx.buytrx.price)) * Math.abs(Number(tx.buytrx.amount))) + Math.abs(Number(tx.buytrx.fee)) + Math.abs(Number(tx.buytrx.tax));
+          let income = Math.abs(Number(tx.selltrx.price)) * Math.abs(Number(tx.selltrx.amount));
+          let gainOrLoss = income - expense;
+
+          let text = `| ${util.padRight(tx.numeratorSymbol+'/'+tx.denominatorSymbol, 9)} | ${util.padLeft(util.formatMoney(tx.selltrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.selltrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft(util.formatMoney(income, 2), 16)} | ${gainOrLoss < 0 ? chalk.red.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16)) : chalk.green.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16))} | ${util.timeToDate(tx.time)} |`;
+          console.log(text);
+        }
+      }
+      console.log(`|${util.padRight('', 128, '-')}|`);
+    } else {
+      console.log(chalk.yellow.bold('no orders.'));
+    }
+  } catch (e) {
+    console.error(`${chalk.red.bold('error: an error was encountered by api.')}`);
+    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    return;
+  }
+};
 let status = async (args) => {
   let text = util.padCenter(database.getConfig('status'), 12);
   console.log(`|${util.padRight('', text.length + 2, '-')}|`);
@@ -188,15 +227,14 @@ let callproc = async (args, proc) => {
   .option('-h, --hide', `hide low balances`)
   .action(balance);
 
+  program.command('order').description('show orders')
+  .action(order);
+
   program.command('start').description('start trader').action(callproc);
   program.command('stop').description('stop trader').action(callproc);
   program.command('restart').description('restart trader').action(callproc);
 
   program.command('status').description('show trader status').action(status);
-
-  /**
-   * orders
-   */
 
   await program.parseAsync(process.argv);
 };
