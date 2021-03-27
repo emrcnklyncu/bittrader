@@ -139,6 +139,7 @@ cron.schedule(database.getConfig('expression'), async () => {
     let pairs = await getPairs(now, numerator, 20);
     let rsi = await checkRSI(pairs.slice(0, 16));
     let bb = await checkBB(pairs.slice(0, 20));
+    console.log(`${numerator}/${pairs[0]} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
     if (pairs[0] && rsi[0] && rsi[1] && bb[0]) {
       if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > pairs[0]) {//signal for buy
         console.log(chalk.green.bold(`signal for ${numerator} buy`));
