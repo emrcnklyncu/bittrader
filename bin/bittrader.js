@@ -137,16 +137,19 @@ cron.schedule(database.getConfig('expression'), async () => {
   for (n in constant.ACCEPTABLE_NUMERATORS) {
     let numerator = constant.ACCEPTABLE_NUMERATORS[n];
     let pairs = await getPairs(now, numerator, 20);
-    let rsi = await checkRSI(pairs.slice(0, 16));
-    let bb = await checkBB(pairs.slice(0, 20));
-    console.log(`${numerator}/${pairs[0]} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
-    if (pairs[0] && rsi[0] && rsi[1] && bb[0]) {
-      if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > pairs[0]) {//signal for buy
-        console.log(chalk.green.bold(`signal for ${numerator} buy`));
-        //await buy(now, numerator);
-      } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < pairs[0]) {//signal for sell
-        console.log(chalk.red.bold(`signal for ${numerator} sell`));
-        //await sell(now, numerator);
+    if (pairs.length == 20) {
+      let last = pairs[19];
+      let rsi = await checkRSI(pairs.slice(4, 20));
+      let bb = await checkBB(pairs.slice(0, 20));
+      console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
+      if (last && rsi[0] && rsi[1] && bb[0]) {
+        if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > last) {//signal for buy
+          console.log(chalk.green.bold(`signal for ${numerator} buy`));
+          //await buy(now, numerator);
+        } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < last) {//signal for sell
+          console.log(chalk.red.bold(`signal for ${numerator} sell`));
+          //await sell(now, numerator);
+        }
       }
     }
   }
