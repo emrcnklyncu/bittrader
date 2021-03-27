@@ -180,7 +180,7 @@ let callproc = async (args, proc) => {
         }
         break;
       case 'restart':
-        if (!database.getConfig('status') || constant.STATUS_STARTED != database.getConfig('status')) {
+        if (!database.getConfig('status') || (constant.STATUS_STARTED != database.getConfig('status') && constant.STATUS_RESTARTED != database.getConfig('status'))) {
           pm2.disconnect();
           console.error(`${chalk.red.bold('error: trader is not yet started. please use the [start] command.')}`);
         } else {
