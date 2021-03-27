@@ -145,10 +145,10 @@ cron.schedule(database.getConfig('expression'), async () => {
       if (last && rsi[0] && rsi[1] && bb[0]) {
         if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > last) {//signal for buy
           console.log(chalk.green.bold(`signal for ${numerator} buy`));
-          //await buy(now, numerator);
+          if (database.getConfig('allowbuy')) await buy(now, numerator);
         } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < last) {//signal for sell
           console.log(chalk.red.bold(`signal for ${numerator} sell`));
-          //await sell(now, numerator);
+          if (database.getConfig('allowsell')) await sell(now, numerator);
         }
       }
     }

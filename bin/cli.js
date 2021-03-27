@@ -36,6 +36,18 @@ const constant = require('../libraries/constant');
   else database.setConfig('status', constant.STATUS_CONNECTED);
 };
 let config = async (args) => {
+  if (args.allowbuy) {
+    database.setConfig('allowbuy', true);
+  }
+  if (args.disallowbuy) {
+    database.setConfig('allowbuy', false);
+  }
+  if (args.allowsell) {
+    database.setConfig('allowsell', true);
+  }
+  if (args.disallowsell) {
+    database.setConfig('allowsell', false);
+  }
   if (args.denominator) {
     if (!constant.ACCEPTABLE_DENOMINATORS.split(',').includes(args.denominator)) {
       console.error(`${chalk.red.bold('error: not acceptable denominator.')}\nacceptable denominators: ${constant.ACCEPTABLE_DENOMINATORS}`);
@@ -210,17 +222,21 @@ let callproc = async (args, proc) => {
     .name('bittrader')
     .usage('[command] <options>')
     .description(package.description)
-    .version(package.version, '-v, --version', 'output the current version');
+    .version(package.version, '--version', 'output the current version');
 
   program.command('connect').description('connnect to api')
-  .requiredOption('-k, --key <key>', 'set api key (mandatory)')
-  .requiredOption('-s, --secret <secret>', 'set api secret (mandatory)')
+  .requiredOption('--key <key>', 'set api key (mandatory)')
+  .requiredOption('--secret <secret>', 'set api secret (mandatory)')
   .action(connect);
 
   program.command('config').description('can be used to set up trader')
-  .option('-d, --denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
-  .option('-e, --expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
-  .option('-a, --orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
+  .option('--denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
+  .option('--expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
+  .option('--orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
+  .option('--allowbuy', `if trader catches a buy signal, it automatically buys`)
+  .option('--disallowbuy', `don't allow trader to automatically buys`)
+  .option('--allowsell', `if trader catches a sell signal, it automatically sells`)
+  .option('--disallowsell', `don't allow trader to automatically sells`)
   .action(config);
 
   program.command('balance').description('show balance')

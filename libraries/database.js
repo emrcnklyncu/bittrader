@@ -7,6 +7,7 @@ const constant = require('./constant');
 
 db.defaults({ config: {
   status: constant.STATUS_BEGINNED,
+  allowbuy: false, allowsell: false,
   denominator: constant.DEFAULT_DENOMINATOR,
   expression: constant.DEFAULT_EXPRESSION,
   orderamount: constant.DEFAULT_ORDER_AMOUNT
