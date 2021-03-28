@@ -10,5 +10,8 @@ module.exports = {
   STATUS_CONFIGURED : 'configured',
   STATUS_STARTED : 'started',
   STATUS_STOPPED : 'stopped',
-  STATUS_RESTARTED : 'restarted'
+  STATUS_RESTARTED : 'restarted',
+  DEFAULT_USERNAME: 'CHANGEME',
+  DEFAULT_PASSWORD: 'CHANGEME',
+  DEFAULT_PORT: 3000
 };

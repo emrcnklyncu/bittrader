@@ -10,7 +10,10 @@ db.defaults({ config: {
   allowbuy: false, allowsell: false,
   denominator: constant.DEFAULT_DENOMINATOR,
   expression: constant.DEFAULT_EXPRESSION,
-  orderamount: constant.DEFAULT_ORDER_AMOUNT
+  orderamount: constant.DEFAULT_ORDER_AMOUNT,
+  username: constant.DEFAULT_USERNAME, 
+  password: constant.DEFAULT_PASSWORD, 
+  port: constant.DEFAULT_PORT
 }, orders: [], pairs: [] }).write();
 
 module.exports = function() {

@@ -25,7 +25,7 @@ const constant = require('../libraries/constant');
   try {
     await client.getAccountBalance(args.key, args.secret);
   } catch (e) {
-    console.error(`${chalk.red.bold('error: cannot access api')}`);
+    console.error(`${chalk.red.bold('error: cannot access api.')}`);
     console.error(`${chalk.red.bold(e.code, e.text)}`);
     return;
   }
@@ -71,6 +71,21 @@ let config = async (args) => {
       return;
     } else {
       database.setConfig('orderamount', orderamount);
+    }
+  }
+  if (args.username) {
+    database.setConfig('username', args.username);
+  }
+  if (args.password) {
+    database.setConfig('password', args.password);
+  }
+  if (args.port) {
+    let port = Number.parseInt(args.port, 10);
+    if (Number.isNaN(port) || port != args.port) {
+      console.error(`${chalk.red.bold('error: port must be numeric.')}`);
+      return;
+    } else {
+      database.setConfig('port', port);
     }
   }
   console.log(`${chalk.green.bold('✓ parameters have changed.')}`);
@@ -237,6 +252,9 @@ let callproc = async (args, proc) => {
   .option('--disallowbuy', `don't allow trader to automatically buys`)
   .option('--allowsell', `if trader catches a sell signal, it automatically sells`)
   .option('--disallowsell', `don't allow trader to automatically sells`)
+  .option('--username <username>', `set username for web application (default: ${constant.DEFAULT_USERNAME})`)
+  .option('--password <password>', `set password for web application (default: ${constant.DEFAULT_PASSWORD})`)
+  .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
   .action(config);
 
   program.command('balance').description('show balance')
