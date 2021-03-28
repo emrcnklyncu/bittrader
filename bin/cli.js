@@ -79,6 +79,14 @@ let config = async (args) => {
   if (args.password) {
     database.setConfig('password', args.password);
   }
+  if (args.timezone) {
+    if (!util.isValidTimeZone(args.timezone)) {
+      console.error(`${chalk.red.bold('error: not valid timezone.')}`);
+      return;
+    } else {
+      database.setConfig('timezone', args.timezone);
+    }
+  }
   if (args.port) {
     let port = Number.parseInt(args.port, 10);
     if (Number.isNaN(port) || port != args.port) {
@@ -255,6 +263,7 @@ let callproc = async (args, proc) => {
   .option('--username <username>', `set username for web application (default: ${constant.DEFAULT_USERNAME})`)
   .option('--password <password>', `set password for web application (default: ${constant.DEFAULT_PASSWORD})`)
   .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
+  .option('--timezone <timezone>', `set timezone for web application (default: ${constant.DEFAULT_TIMEZONE})`)
   .action(config);
 
   program.command('balance').description('show balance')

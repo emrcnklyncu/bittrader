@@ -13,7 +13,8 @@ db.defaults({ config: {
   orderamount: constant.DEFAULT_ORDER_AMOUNT,
   username: constant.DEFAULT_USERNAME, 
   password: constant.DEFAULT_PASSWORD, 
-  port: constant.DEFAULT_PORT
+  port: constant.DEFAULT_PORT,
+  timezone: constant.DEFAULT_TIMEZONE
 }, orders: [], pairs: [] }).write();
 
 module.exports = function() {
