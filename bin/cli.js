@@ -253,6 +253,10 @@ let callproc = async (args, proc) => {
   .action(connect);
 
   program.command('config').description('can be used to set up trader')
+  .option('--username <username>', `set username for web application (default: ${constant.DEFAULT_USERNAME})`)
+  .option('--password <password>', `set password for web application (default: ${constant.DEFAULT_PASSWORD})`)
+  .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
+  .option('--timezone <timezone>', `set timezone for web application (default: ${constant.DEFAULT_TIMEZONE})`)
   .option('--denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
   .option('--expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
   .option('--orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
@@ -260,10 +264,6 @@ let callproc = async (args, proc) => {
   .option('--disallowbuy', `don't allow trader to automatically buys`)
   .option('--allowsell', `if trader catches a sell signal, it automatically sells`)
   .option('--disallowsell', `don't allow trader to automatically sells`)
-  .option('--username <username>', `set username for web application (default: ${constant.DEFAULT_USERNAME})`)
-  .option('--password <password>', `set password for web application (default: ${constant.DEFAULT_PASSWORD})`)
-  .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
-  .option('--timezone <timezone>', `set timezone for web application (default: ${constant.DEFAULT_TIMEZONE})`)
   .action(config);
 
   program.command('balance').description('show balance')

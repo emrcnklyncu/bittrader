@@ -7,14 +7,15 @@ const constant = require('./constant');
 
 db.defaults({ config: {
   status: constant.STATUS_BEGINNED,
-  allowbuy: false, allowsell: false,
-  denominator: constant.DEFAULT_DENOMINATOR,
-  expression: constant.DEFAULT_EXPRESSION,
-  orderamount: constant.DEFAULT_ORDER_AMOUNT,
   username: constant.DEFAULT_USERNAME, 
   password: constant.DEFAULT_PASSWORD, 
   port: constant.DEFAULT_PORT,
-  timezone: constant.DEFAULT_TIMEZONE
+  timezone: constant.DEFAULT_TIMEZONE,
+  denominator: constant.DEFAULT_DENOMINATOR,
+  expression: constant.DEFAULT_EXPRESSION,
+  orderamount: constant.DEFAULT_ORDER_AMOUNT,
+  allowbuy: false, 
+  allowsell: false
 }, orders: [], pairs: [] }).write();
 
 module.exports = function() {
