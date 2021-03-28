@@ -38,12 +38,19 @@ let writePairs = async function(now) {
   database.pushPair(data);
 };
 let removePairs = async function(now) {
-  let time = 2 * 24 * 60 * 60 * 1000;//2 days
+  let time = 21 * 24 * 60 * 60 * 1000;//21 days
   database.removePairs(now - time);
 };
-let getPairs = async function(now, numerator, limit) {
+let getPairs = async function(now, numerator, limit, period) {
   let pairs = database.getPairs(database.getConfig('denominator'), now.getMinutes(), limit);
+  if (pairs.length != limit) return [];
   let res = util.arrayToObject(pairs)[numerator];
+  if (period) {
+    let pres = [];
+    for (i = limit - 1; i >= 0; i = i - period) 
+      pres.unshift(res[i]);
+    return pres;
+  }
   return res;
 };
 let checkRSI = async function(pairs) {
@@ -137,22 +144,28 @@ let sell = async function(now, numerator) {
 cron.schedule(database.getConfig('expression'), async () => {
   var now = new Date();
   await writePairs(now);
-  await removePairs(now);
-  for (n in constant.ACCEPTABLE_NUMERATORS) {
-    let numerator = constant.ACCEPTABLE_NUMERATORS[n];
-    let pairs = await getPairs(now, numerator, 20);
-    if (pairs.length == 20) {
-      let last = pairs[19];
-      let rsi = await checkRSI(pairs.slice(4, 20));
-      let bb = await checkBB(pairs.slice(0, 20));
-      console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
-      if (last && rsi[0] && rsi[1] && bb[0]) {
-        if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > last) {//signal for buy
-          console.log(chalk.green.bold(`signal for ${numerator} buy`));
-          if (database.getConfig('allowbuy')) await buy(now, numerator);
-        } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < last) {//signal for sell
-          console.log(chalk.red.bold(`signal for ${numerator} sell`));
-          if (database.getConfig('allowsell')) await sell(now, numerator);
+  //await removePairs(now);
+  for (p in constant.PERIODS) {
+    let period = constant.PERIODS[p];
+    for (n in constant.ACCEPTABLE_NUMERATORS) {
+      let numerator = constant.ACCEPTABLE_NUMERATORS[n];
+      let pairs = await getPairs(now, numerator, period * 20, period);
+      if (pairs.length == 20) {
+        let last = pairs[19];
+        let rsi = await checkRSI(pairs.slice(4, 20));
+        let bb = await checkBB(pairs.slice(0, 20));
+        if (last && rsi[0] && rsi[1] && bb[0]) {
+          if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > last) {//signal for buy
+            console.log('---------------------------------------------------');
+            console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
+            console.log(chalk.green.bold(`signal for ${numerator} buy at ${util.timeToDate(now)} in ${period}. period`));
+            if (database.getConfig('allowbuy')) await buy(now, numerator);
+          } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < last) {//signal for sell
+            console.log('---------------------------------------------------');
+            console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
+            console.log(chalk.red.bold(`signal for ${numerator} sell at ${util.timeToDate(now)} in ${period}. period`));
+            if (database.getConfig('allowsell')) await sell(now, numerator);
+          }
         }
       }
     }
