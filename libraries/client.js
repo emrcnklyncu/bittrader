@@ -214,7 +214,7 @@ module.exports = function(apiKey=null, apiSecret=null) {
     function submitMarketOrder(numerator, denominator, orderType, quantity) {
         const url = _constructURL(ORDER_ENDPOINT);
 
-        const pairSymbol = `${numerator}${del}${denominator}`;
+        const pairSymbol = `${numerator}${denominator}`;
         const orderMethod = 'market';
 
         const data = { quantity, orderMethod, orderType, pairSymbol };
@@ -245,7 +245,7 @@ module.exports = function(apiKey=null, apiSecret=null) {
     function submitLimitOrder(numerator, denominator, orderType, quantity, price) {
         const url = _constructURL(ORDER_ENDPOINT);
 
-        const pairSymbol = `${numerator}${del}${denominator}`;
+        const pairSymbol = `${numerator}${denominator}`;
         const orderMethod = 'limit';
 
         const data = {

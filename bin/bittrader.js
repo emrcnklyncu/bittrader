@@ -73,6 +73,7 @@ let buy = async function(now, numerator) {
   } catch (e) {
     console.error(`${chalk.red.bold('error: an error was encountered by api for buy.')}`);
     console.error(`${chalk.red.bold(e.code, e.text)}`);
+    console.error(e);
     return;
   }
   /**
@@ -87,9 +88,10 @@ let buy = async function(now, numerator) {
         console.log(`${util.formatMoney(result.amount, 4)} ${result.numeratorSymbol}s at a value of ${util.formatMoney(result.price, 4)} were purchased on ${util.timeToDate(result.timestamp)}.`);
       }
       clearInterval(tx);
-    } catch (error) {
+    } catch (e) {
       console.error(`${chalk.red.bold('error: an error was encountered by api for reconciliation.')}`);
       console.error(`${chalk.red.bold(e.code, e.text)}`);
+      console.error(e);
     }
   }, 2500);
 };
@@ -106,6 +108,7 @@ let sell = async function(now, numerator) {
     } catch (e) {
       console.error(`${chalk.red.bold('error: an error was encountered by api for sell.')}`);
       console.error(`${chalk.red.bold(e.code, e.text)}`);
+      console.error(e);
       return;
     }
     /**
@@ -120,9 +123,10 @@ let sell = async function(now, numerator) {
           console.log(`${util.formatMoney(result.amount, 4)} ${result.numeratorSymbol}s at a value of ${util.formatMoney(result.price, 4)} were sold on ${util.timeToDate(result.timestamp)}.`);
         }
         clearInterval(tx);
-      } catch (error) {
+      } catch (e) {
         console.error(`${chalk.red.bold('error: an error was encountered by api for reconciliation.')}`);
         console.error(`${chalk.red.bold(e.code, e.text)}`);
+        console.error(e);
       }
     }, 2500);
   }
