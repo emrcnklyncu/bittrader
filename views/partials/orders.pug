@@ -1,0 +1,36 @@
+table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-center:100%')
+  th.text-centeread
+    tr
+      th.text-center(scope='col') #
+      th.text-center Status
+      th.text-center Price
+      th.text-center Amount
+      th.text-center Expense
+      th.text-center Income
+      th.text-center Gain/Loss
+      th.text-center Time
+  if orders
+    tbody
+      for tx in orders
+        - let eig = fn.calculateGainOrLoss(tx.buytrx, tx.selltrx);
+        tr
+          th.text-center(scope='row')=tx.numerator + '/' + tx.denominator
+          if tx.sell
+            td.text-center Closed
+            td.text-right=fn.formatMoney(Math.abs(Number(tx.selltrx.price)), 4)
+            td.text-right=fn.formatMoney(Math.abs(Number(tx.selltrx.amount)), 4)
+            td.text-right=fn.formatMoney(eig.expense, 2)
+            td.text-right=fn.formatMoney(eig.income, 2)
+            if eig.gainOrLoss >= 0
+              td.text-right.bg-success=fn.formatMoney(eig.gainOrLoss, 2)
+            else if gainOrLoss < 0
+              td.text-right.bg-danger=fn.formatMoney(eig.gainOrLoss, 2)
+            td.text-left=fn.timeToDate(tx.time)
+          else
+            td.text-center Open
+            td.text-right=fn.formatMoney(Math.abs(Number(tx.buytrx.price)), 2)
+            td.text-right=fn.formatMoney(Math.abs(Number(tx.buytrx.amount)), 2)
+            td.text-right=fn.formatMoney(eig.expense, 2)
+            td.text-center - not sold -
+            td.text-center - not sold -
+            td.text-left=fn.timeToDate(tx.time)

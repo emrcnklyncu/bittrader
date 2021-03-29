@@ -16,7 +16,7 @@ db.defaults({ config: {
   orderamount: constant.DEFAULT_ORDER_AMOUNT,
   allowbuy: false, 
   allowsell: false
-}, orders: [], pairs: [] }).write();
+}, signals: [], orders: [], pairs: [] }).write();
 
 module.exports = function() {
   function getConfig(config = null) {
@@ -27,6 +27,15 @@ module.exports = function() {
   function setConfig(config, value) {
     if (config)
       db.set(`config.${config}`, value).write();
+  };
+  function getSignals(denominator, now, limit) {
+    db.read();
+    if (now)
+      return db.get('signals').filter({denominator: denominator, time: now}).sortBy('time').reverse().take(limit || 20).value();
+    return db.get('signals').filter({denominator: denominator}).sortBy('time').reverse().take(limit || 20).value();
+  };
+  function pushSignal(signal) {
+    db.get('signals').push(signal).write();
   };
   function getPairs(denominator, minute, limit) {
     db.read();
@@ -53,6 +62,8 @@ module.exports = function() {
   return {
     getConfig,
     setConfig,
+    getSignals,
+    pushSignal,
     getPairs,
     removePairs,
     pushPair,

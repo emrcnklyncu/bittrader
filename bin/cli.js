@@ -133,16 +133,16 @@ let order = async (args) => {
   try {
     let orders = database.getOrders();
     if (orders && orders.length > 0) {
-      console.log(`|${util.padRight('', 128, '-')}|`);
-      console.log(`| ${util.padRight('pair', 9)} | ${util.padLeft('price', 16)} | ${util.padLeft('amount', 16)} | ${util.padLeft('expense', 16)} | ${util.padLeft('income', 16)} | ${util.padLeft('gain/loss', 16)} | ${util.padRight('time', 19)} |`);
-      console.log(`|${util.padRight('', 128, '-')}|`);
+      console.log(`|${util.padRight('', 140, '-')}|`);
+      console.log(`| ${util.padRight('pair', 9)} | ${util.padRight('status', 9)} | ${util.padLeft('price', 16)} | ${util.padLeft('amount', 16)} | ${util.padLeft('expense', 16)} | ${util.padLeft('income', 16)} | ${util.padLeft('gain/loss', 16)} | ${util.padRight('time', 19)} |`);
+      console.log(`|${util.padRight('', 140, '-')}|`);
       for (t in orders) {
         let tx = orders[t];
         
         if (tx.buytrx && !tx.selltrx) {
           let expense = (Math.abs(Number(tx.buytrx.price)) * Math.abs(Number(tx.buytrx.amount))) + Math.abs(Number(tx.buytrx.fee)) + Math.abs(Number(tx.buytrx.tax));
 
-          let text = `| ${util.padRight(tx.numeratorSymbol+'/'+tx.denominatorSymbol, 9)} | ${util.padLeft(util.formatMoney(tx.buytrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.buytrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft('- not sold -', 16)} | ${util.padLeft('- not sold -', 16)} | ${util.timeToDate(tx.time)} |`;
+          let text = `| ${util.padRight(tx.numerator+'/'+tx.denominator, 9)} | ${util.padRight('open', 9)} | ${util.padLeft(util.formatMoney(tx.buytrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.buytrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft('- not sold -', 16)} | ${util.padLeft('- not sold -', 16)} | ${util.timeToDate(tx.time)} |`;
           console.log(text);
         }
         if (tx.buytrx && tx.selltrx) {
@@ -150,11 +150,11 @@ let order = async (args) => {
           let income = Math.abs(Number(tx.selltrx.price)) * Math.abs(Number(tx.selltrx.amount));
           let gainOrLoss = income - expense;
 
-          let text = `| ${util.padRight(tx.numeratorSymbol+'/'+tx.denominatorSymbol, 9)} | ${util.padLeft(util.formatMoney(tx.selltrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.selltrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft(util.formatMoney(income, 2), 16)} | ${gainOrLoss < 0 ? chalk.red.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16)) : chalk.green.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16))} | ${util.timeToDate(tx.time)} |`;
+          let text = `| ${util.padRight(tx.numerator+'/'+tx.denominator, 9)} | ${util.padRight('closed', 9)} | ${util.padLeft(util.formatMoney(tx.selltrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.selltrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft(util.formatMoney(income, 2), 16)} | ${gainOrLoss < 0 ? chalk.red.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16)) : chalk.green.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16))} | ${util.timeToDate(tx.time)} |`;
           console.log(text);
         }
       }
-      console.log(`|${util.padRight('', 128, '-')}|`);
+      console.log(`|${util.padRight('', 140, '-')}|`);
     } else {
       console.log(chalk.yellow.bold('no orders.'));
     }
