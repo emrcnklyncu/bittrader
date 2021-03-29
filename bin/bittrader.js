@@ -23,6 +23,11 @@ const client = require('../libraries/client')(database.getConfig('key'), databas
 const constant = require('../libraries/constant');
 
 /**
+ * Set timezone.
+ */
+process.env.TZ=database.getConfig('timezone');
+
+/**
  * Create Express app.
  */
 const app = express();

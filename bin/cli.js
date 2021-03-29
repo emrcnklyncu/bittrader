@@ -19,6 +19,11 @@ const client = require('../libraries/client')();
 const constant = require('../libraries/constant');
 
 /**
+ * Set timezone.
+ */
+process.env.TZ=database.getConfig('timezone');
+
+/**
  * Program actions.
  */
  let connect = async (args) => {

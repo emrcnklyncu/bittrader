@@ -5,7 +5,10 @@ const lowadapter = new lowfs('bittrader.json');
 const db = low(lowadapter);
 const constant = require('./constant');
 
-db.defaults({ config: {
+/**
+ * DB default configs.
+ */
+let config = {
   status: constant.STATUS_BEGINNED,
   username: constant.DEFAULT_USERNAME, 
   password: constant.DEFAULT_PASSWORD, 
@@ -16,7 +19,21 @@ db.defaults({ config: {
   orderamount: constant.DEFAULT_ORDER_AMOUNT,
   allowbuy: false, 
   allowsell: false
-}, signals: [], orders: [], pairs: [] }).write();
+};
+
+/**
+ * Set db default values.
+ */
+db.defaults({ config: config, signals: [], orders: [], pairs: [] }).write();
+
+/**
+ * If db exists, set db default values 
+ */
+for (const [key, value] of Object.entries(config)) {
+  if (!db.has(`config.${key}`).value()) {
+    db.set(`config.${key}`, value).write();
+  }
+};
 
 module.exports = function() {
   function getConfig(config = null) {
