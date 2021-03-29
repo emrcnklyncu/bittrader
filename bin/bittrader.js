@@ -9,6 +9,7 @@ const flash = require('express-flash');
 const cron = require('node-cron');
 const chalk = require('chalk');
 const path = require('path');
+const pug = require('pug');
 const crypto = require('crypto');
 const rsi = require('technicalindicators').RSI;
 const bb = require('technicalindicators').BollingerBands;
@@ -303,7 +304,6 @@ app.post('/login', function(req, res) {
   }
 });
 app.get('/', async function(req, res) {
-  var now = new Date();
   try {
     let balances = await client.getAccountBalance();
     let signals = await getSignals();
@@ -314,11 +314,26 @@ app.get('/', async function(req, res) {
     res.status(500).send('server error');
   }
 });
+app.get('/ajax', async function(req, res) {
+  try {
+    let balances = await client.getAccountBalance();
+    let signals = await getSignals();
+    let orders = database.getOrders();
+    res.send(pug.renderFile(path.join(__dirname, '..', 'views', 'dashboard.pug'), { fn: app.locals.fn, title: 'Dashboard', messages: [], balances: balances, signals: signals, orders: orders }));
+  } catch(e) {
+    console.error(e);
+    res.status(500).json('server error');
+  }
+});
 
 /**
  * Start Express server.
  */
 app.listen(app.get('port'), () => {
+  console.log('---------------------------------------------------');
+  console.log('---------------------------------------------------');
   console.log('%s App is running at http://localhost:%d', chalk.green('✓'), app.get('port'));
+  console.log('---------------------------------------------------');
+  console.log('---------------------------------------------------');
   controller();
 });
