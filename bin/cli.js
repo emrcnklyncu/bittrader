@@ -21,7 +21,7 @@ const constant = require('../libraries/constant');
 /**
  * Set timezone.
  */
-process.env.TZ=database.getConfig('timezone');
+process.env.TZ = database.getConfig('timezone');
 
 /**
  * Program actions.

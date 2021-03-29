@@ -25,7 +25,7 @@ const constant = require('../libraries/constant');
 /**
  * Set timezone.
  */
-process.env.TZ=database.getConfig('timezone');
+process.env.TZ = database.getConfig('timezone');
 
 /**
  * Create Express app.
@@ -38,8 +38,8 @@ const app = express();
 app.set('host', process.env.HOST || '0.0.0.0');
 app.set('port', process.env.PORT || database.getConfig('port') || 3000);
 app.set('view engine', 'pug');
-app.set('views', 'views');
-app.use('/', express.static('./public', {maxAge: 31557600000}));
+app.set('views', path.join(__dirname, '..', 'views'));
+app.use('/', express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600000}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
@@ -147,7 +147,7 @@ let writeSignals = async function(now) {
           } else if (rsi[0] >= 70 && rsi[1] < 70 && bb[0].upper <= last) {//signal for sell
             sellsignal = true;
           }
-          if (buysignal ||sellsignal) {
+          if (buysignal || sellsignal) {
             database.pushSignal({
               denominator: database.getConfig('denominator'),
               numerator: numerator,
@@ -159,7 +159,7 @@ let writeSignals = async function(now) {
               buysignal: buysignal,
               sellsignal: sellsignal,
               period: period,
-              time: now
+              time: now.getTime()
             });
           }
         }

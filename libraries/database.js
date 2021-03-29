@@ -48,8 +48,8 @@ module.exports = function() {
   function getSignals(denominator, now, limit) {
     db.read();
     if (now)
-      return db.get('signals').filter({denominator: denominator, time: now}).sortBy('time').reverse().take(limit || 20).value();
-    return db.get('signals').filter({denominator: denominator}).sortBy('time').reverse().take(limit || 20).value();
+      return db.get('signals').filter({denominator: denominator, time: now}).sortBy('time').reverse().take(limit || 50).value();
+    return db.get('signals').filter({denominator: denominator}).sortBy('time').reverse().take(limit || 50).value();
   };
   function pushSignal(signal) {
     db.get('signals').push(signal).write();

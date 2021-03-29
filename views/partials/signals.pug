@@ -15,15 +15,15 @@ table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-c
       for d in signals
         tr
           th.text-center(scope='row')=d.numerator + '/' + d.denominator
-          if d.buyflag
-            td.text-right.text-success BUY
-          else if d.sellflag 
-            td.text-right.text-danger SELL
+          if d.buysignal
+            td.text-center.text-success BUY
+          else if d.sellsignal 
+            td.text-center.text-danger SELL
           td.text-right=fn.formatMoney(d.last, 4)
           td.text-right=fn.formatMoney(d.rsi0, 4)
           td.text-right=fn.formatMoney(d.rsi1, 4)
           td.text-right=fn.formatMoney(d.bblower, 4)
           td.text-right=fn.formatMoney(d.bbupper, 4)
           td.text-right=d.period
-          td.text-right=fn.timeToDate(d.time, true)
+          td.text-right=fn.timeToDate(d.time)
           
