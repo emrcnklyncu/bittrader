@@ -168,8 +168,9 @@ let writeSignals = async function(now) {
     }
   }
 };
-let getSignals = async function(now, limit) {
-  return database.getSignals(database.getConfig('denominator'), now, limit);
+let getSignals = async function(now) {
+  if (now) return database.getSignals(database.getConfig('denominator'), now.getTime());
+  return database.getSignals(database.getConfig('denominator'));
 
 };
 let calculateRSI = async function(pairs) {

@@ -45,10 +45,10 @@ module.exports = function() {
     if (config)
       db.set(`config.${config}`, value).write();
   };
-  function getSignals(denominator, now, limit) {
+  function getSignals(denominator, time, limit) {
     db.read();
-    if (now)
-      return db.get('signals').filter({denominator: denominator, time: now}).sortBy('time').reverse().take(limit || 30).value();
+    if (time)
+      return db.get('signals').filter({denominator: denominator, time: time}).sortBy('time').reverse().take(limit || 30).value();
     return db.get('signals').filter({denominator: denominator}).sortBy('time').reverse().take(limit || 30).value();
   };
   function pushSignal(signal) {
