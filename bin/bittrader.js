@@ -160,6 +160,8 @@ let writeSignals = async function(now) {
               buysignal: buysignal,
               sellsignal: sellsignal,
               period: period,
+              hour: now.getHours(),
+              minute: now.getMinutes(),
               time: now.getTime()
             });
           }
