@@ -1,10 +1,18 @@
 /**
  * Module dependencies.
  */
+const express = require('express');
+const session = require('express-session');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const flash = require('express-flash');
 const cron = require('node-cron');
 const chalk = require('chalk');
+const path = require('path');
+const crypto = require('crypto');
 const rsi = require('technicalindicators').RSI;
 const bb = require('technicalindicators').BollingerBands;
+const package = require('../package.json');
 
 /**
  * Import libraries.
@@ -13,6 +21,69 @@ const util = require('../libraries/util')();
 const database = require('../libraries/database')();
 const client = require('../libraries/client')(database.getConfig('key'), database.getConfig('secret'));
 const constant = require('../libraries/constant');
+
+/**
+ * Create Express app.
+ */
+const app = express();
+
+/**
+ * Express configuration.
+ */
+app.set('host', process.env.HOST || '0.0.0.0');
+app.set('port', process.env.PORT || database.getConfig('port') || 3000);
+app.set('view engine', 'pug');
+app.set('views', 'views');
+app.use('/', express.static('./public', {maxAge: 31557600000}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
+app.use(flash());
+app.use(session({
+  resave: true,
+  saveUninitialized: true,
+  secret: constant.SESSION_SECRET,
+  cookie: {maxAge: 1209600000}, // two weeks in milliseconds
+}));
+app.use((req, res, next) => {
+  var auth = req.cookies['auth'];
+  if (auth) {
+    if ('/logout' == req.path) {
+      res.clearCookie('auth');
+      return res.redirect('/login');
+    }
+    let decipher = crypto.createDecipher(constant.SESSION_ALGORITHM, constant.SESSION_SECRET);
+    let usernameAndPassword = decipher.update(auth, 'hex', 'utf8') + decipher.final('utf8');
+    if ((database.getConfig('username') + database.getConfig('password')) == usernameAndPassword) {
+      if ('/login' == req.path) return res.redirect('/');
+      return next();
+    }
+  }
+  if ('/login' != req.path) return res.redirect('/login');
+  return next();
+});
+
+/**
+ * Web app methods.
+ */
+app.locals.fn = {
+  version: package.version,
+  description: package.description,
+  username: database.getConfig('username'),
+  timeToDate : util.timeToDate,
+  formatMoney : util.formatMoney,
+  calculateGainOrLoss: function (buytrx, selltrx) {
+    if (buytrx && !selltrx) {
+      let expense = (Math.abs(Number(buytrx.price)) * Math.abs(Number(buytrx.amount))) + Math.abs(Number(buytrx.fee)) + Math.abs(Number(buytrx.tax));
+      return {expense: expense};
+    } else if (buytrx && selltrx) {
+      let expense = (Math.abs(Number(buytrx.price)) * Math.abs(Number(buytrx.amount))) + Math.abs(Number(buytrx.fee)) + Math.abs(Number(buytrx.tax));
+      let income = Math.abs(Number(selltrx.price)) * Math.abs(Number(selltrx.amount));
+      let gainOrLoss = income - expense;
+      return {expense: expense, income: income, gainOrLoss: gainOrLoss};
+    }
+  }
+};
 
 /**
  * Methods.
@@ -53,7 +124,49 @@ let getPairs = async function(now, numerator, limit, period) {
   }
   return res;
 };
-let checkRSI = async function(pairs) {
+let writeSignals = async function(now) {
+  for (p in constant.PERIODS) {
+    let period = constant.PERIODS[p];
+    for (n in constant.ACCEPTABLE_NUMERATORS) {
+      let numerator = constant.ACCEPTABLE_NUMERATORS[n];
+      let pairs = await getPairs(now, numerator, period * 20, period);
+      if (pairs.length == 20) {
+        let last = pairs[19];
+        let rsi = await calculateRSI(pairs.slice(4, 20));
+        let bb = await calculateBB(pairs.slice(0, 20));
+        if (last && rsi[0] && rsi[1] && bb[0]) {
+          let buysignal = false;
+          let sellsignal = false;
+          if (rsi[0] <= 30 && rsi[1] > 30 && bb[0].lower >= last) {//signal for buy
+            buysignal = true;
+          } else if (rsi[0] >= 70 && rsi[1] < 70 && bb[0].upper <= last) {//signal for sell
+            sellsignal = true;
+          }
+          if (buysignal ||sellsignal) {
+            database.pushSignal({
+              denominator: database.getConfig('denominator'),
+              numerator: numerator,
+              last: last,
+              rsi0: rsi[0],
+              rsi1: rsi[1],
+              bblower: bb[0].lower,
+              bbupper: bb[0].upper,
+              buysignal: buysignal,
+              sellsignal: sellsignal,
+              period: period,
+              time: now
+            });
+          }
+        }
+      }
+    }
+  }
+};
+let getSignals = async function(now, limit) {
+  return database.getSignals(database.getConfig('denominator'), now, limit);
+
+};
+let calculateRSI = async function(pairs) {
   //14 & 16 => is required for rsi calculation
   if (pairs.length == 16) {
     return rsi.calculate({values: pairs, period: 14});
@@ -61,7 +174,7 @@ let checkRSI = async function(pairs) {
     return false;
   }
 };
-let checkBB = async function(pairs) {
+let calculateBB = async function(pairs) {
   //20 => is required for bb calculation
   //stdDev => standard deviation 
   if (pairs.length == 20) {
@@ -145,33 +258,64 @@ let controller = () => {
   cron.schedule(database.getConfig('expression'), async () => {
     var now = new Date();
     await writePairs(now);
-    //await removePairs(now);
-    for (p in constant.PERIODS) {
-      let period = constant.PERIODS[p];
-      for (n in constant.ACCEPTABLE_NUMERATORS) {
-        let numerator = constant.ACCEPTABLE_NUMERATORS[n];
-        let pairs = await getPairs(now, numerator, period * 20, period);
-        if (pairs.length == 20) {
-          let last = pairs[19];
-          let rsi = await checkRSI(pairs.slice(4, 20));
-          let bb = await checkBB(pairs.slice(0, 20));
-          if (last && rsi[0] && rsi[1] && bb[0]) {
-            if (rsi[0] < 30 && rsi[1] >= 30 && bb[0].lower > last) {//signal for buy
-              console.log('---------------------------------------------------');
-              console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
-              console.log(chalk.green.bold(`signal for ${numerator} buy at ${util.timeToDate(now)} in ${period}. period`));
-              if (database.getConfig('allowbuy')) await buy(now, numerator);
-            } else if (rsi[0] > 70 && rsi[1] <= 70 && bb[0].upper < last) {//signal for sell
-              console.log('---------------------------------------------------');
-              console.log(`${numerator}/${last} - ${rsi[0]},${rsi[1]} - ${bb[0].lower},${bb[0].upper}`);
-              console.log(chalk.red.bold(`signal for ${numerator} sell at ${util.timeToDate(now)} in ${period}. period`));
-              if (database.getConfig('allowsell')) await sell(now, numerator);
-            }
-          }
-        }
+    await removePairs(now);
+    await writeSignals(now);
+    let signals = await getSignals(now);
+    for (s in signals) {
+      let signal = signals[s];
+      if (signal.buysignal) {
+        console.log('---------------------------------------------------');
+        console.log(`${signal.numerator}/${signal.last} - ${signal.rsi0},${signal.rsi1} - ${signal.bblower},${signal.bbupper}`);
+        console.log(chalk.green.bold(`signal for ${signal.numerator} buy at ${util.timeToDate(signal.time)} in ${signal.period}. period`));
+        if (database.getConfig('allowbuy')) await buy(now, signal.numerator);
+      } else if (signal.sellsignal) {
+        console.log('---------------------------------------------------');
+        console.log(`${signal.numerator}/${signal.last} - ${signal.rsi0},${signal.rsi1} - ${signal.bblower},${signal.bbupper}`);
+        console.log(chalk.green.bold(`signal for ${signal.numerator} sell at ${util.timeToDate(signal.time)} in ${signal.period}. period`));
+        if (database.getConfig('allowsell')) await sell(now, signal.numerator);
       }
     }
   });
 };
 
-controller();
+/**
+ * Routes.
+ */
+app.get('/login', function(req, res) {
+  res.render('login', { title: 'Authenticate User' });
+});
+app.post('/login', function(req, res) {
+  let username = req.body.username,
+      password = req.body.password;
+  if (database.getConfig('username') == username && database.getConfig('password') == password) {
+    let cipher = crypto.createCipher(constant.SESSION_ALGORITHM, constant.SESSION_SECRET);
+    let auth = cipher.update(username + password, 'utf8', 'hex') + cipher.final('hex');
+    res.cookie('auth', auth, {maxAge: 31557600000, httpOnly: true});
+    res.redirect('/');
+  } else {
+    req.flash('error', {text: 'Username or password is incorrect.'});
+    res.redirect('/login');
+  }
+});
+app.get('/', async function(req, res) {
+  var now = new Date();
+  try {
+    let balances = await client.getAccountBalance();
+    let signals = await getSignals();
+    let orders = database.getOrders();
+    res.render('dashboard', { title: 'Dashboard', balances: balances, signals: signals, orders: orders });
+  } catch(e) {
+    console.error(e);
+    res.status(500).send('server error');
+  }
+});
+
+/**
+ * Start Express server.
+ */
+app.listen(app.get('port'), () => {
+  console.log('%s App is running at http://localhost:%d', chalk.green('✓'), app.get('port'));
+});
+
+
+//TODO:controller();
