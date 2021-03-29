@@ -320,7 +320,5 @@ app.get('/', async function(req, res) {
  */
 app.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d', chalk.green('✓'), app.get('port'));
+  controller();
 });
-
-
-//TODO:controller();
