@@ -14,5 +14,7 @@ module.exports = {
   DEFAULT_USERNAME: 'CHANGEME',
   DEFAULT_PASSWORD: 'CHANGEME',
   DEFAULT_PORT: 3000,
-  DEFAULT_TIMEZONE: 'Europe/Istanbul'
+  DEFAULT_TIMEZONE: 'Europe/Istanbul',
+  SESSION_SECRET: 'Hq$3tvCn8J3tfG%_v*FCK*G=?mwcJWBP3GS-&ehwRs6zHssssqr2d^TLR6dP3VAm',
+  SESSION_ALGORITHM: 'aes256'
 };

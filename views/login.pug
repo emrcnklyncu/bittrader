@@ -1,0 +1,14 @@
+extends ./layout
+
+block content
+  .container-fluid.p-3.text-center
+    form.form-signin(method='POST')
+      h1.h3.mb-3.font-weight-normal.text-light Please sign in
+      label.sr-only(for='username') Username
+      input#username.form-control(type='text' placeholder='Username' required autofocus name='username')
+      label.sr-only(for='password') Password
+      input#password.form-control(type='password' placeholder='Password' required name='password')
+      button.btn.btn-lg.btn-primary.btn-block(type='submit') Sign in
+      span.font-14.text-info bittrader
+      br 
+      small.text-light=fn.version

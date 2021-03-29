@@ -1,0 +1,13 @@
+table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-center:100%')
+  th.text-centeread
+    tr
+      th.text-center(scope='col') #
+      th.text-center Balance
+  if balances
+    tbody
+      for d in balances
+        - let balance = Number.parseFloat(d.balance, 10);
+        if balance > 0.0001
+          tr
+            th.text-center(scope='row')=d.asset
+            td.text-right.text-success=fn.formatMoney(d.balance, d.precision)
