@@ -4,7 +4,7 @@ module.exports = function() {
     var date = new Date(time);
 
     var day = '0' + date.getDate();
-    var month = '0' + date.getMonth();
+    var month = '0' + (date.getMonth() + 1);
     var year = date.getFullYear();
     var hours = '0' + date.getHours();
     var minutes = '0' + date.getMinutes();
