@@ -86,12 +86,10 @@ let evaluatingSignals = async (signals) => {
     let signal = signals[s];
     database.pushSignal(signal);
     if (signal.buysignal && database.getConfig("allowbuy")) {
-      let buy = await client.buy(signal, database.getConfig('amount'));
-      database.pushOrder(buy);
+      await client.buy(signal, database.getConfig('amount'));
     }
     else if (signal.sellsignal && database.getConfig("allowsell")) {
-      let sell = await client.sell(signal);
-      database.pushOrder(sell);
+      await client.sell(signal);
     }
   }
 };
@@ -183,10 +181,8 @@ app.post('/login', function(req, res) {
 });
 app.get('/', async function(req, res) {
   try {
-    let balances = database.getBalances();
     let signals = database.getSignals();
-    let orders = database.getOrders();
-    res.render('dashboard', { title: 'Dashboard', balances: balances, signals: signals, orders: orders });
+    res.render('dashboard', { title: 'Dashboard', signals: signals });
   } catch(e) {
     console.error(e);
     res.status(500).send('server error');

@@ -157,17 +157,23 @@ module.exports = function (apiKey = null, apiSecret = null) {
   let buy = async (signal, amount) => {
     let balance = getNumeratorBalance(signal.denominator);
     if (balance > 0 && balance > amount) {
-      return await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
+      await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
     }
-    return null;
   };
 
   let sell = async (signal) => {
     let balance = getNumeratorBalance(signal.numerator);
     if (balance > 0) {
-      return await exchange.createMarketSellOrder(signal.pair, balance);
+      await exchange.createMarketSellOrder(signal.pair, balance);
     }
-    return null;
+  };
+
+  let getTrades = async (pair) => {
+    let trades = await exchange.fetchMyTrades(pair);
+    for (t in trades) {
+      let trade = trades[t];
+      console.log(trade);
+    }
   };
 
   return {
@@ -178,6 +184,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
     getSignalsFor30Mins,
     getSignalsFor1Hour,
     buy,
-    sell
+    sell,
+    getTrades
   };
 };

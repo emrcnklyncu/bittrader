@@ -9,9 +9,9 @@ table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-c
       th.text-center Income
       th.text-center Gain/Loss
       th.text-center Time
-  if orders
+  if trades
     tbody
-      for tx in orders
+      for tx in trades
         - let eig = fn.calculateGainOrLoss(tx.buytrx, tx.selltrx);
         tr
           th.text-center(scope='row')=tx.numerator + '/' + tx.denominator

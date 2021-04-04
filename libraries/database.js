@@ -24,7 +24,7 @@ let config = {
 /**
  * Set db default values.
  */
-db.defaults({ config: config, balances: [], signals: [], orders: []}).write();
+db.defaults({ config: config, balances: [], signals: []}).write();
 
 /**
  * If db exists, set db default values 
@@ -52,14 +52,6 @@ module.exports = function() {
   function pushSignal(signal) {
     db.get('signals').push(signal).write();
   };
-  function getOrders(where) {
-    db.read();
-    if (where) return db.get('orders').filter(where).sortBy('buy').reverse().value();
-    return db.get('orders').sortBy('buy').reverse().value();
-  };
-  function pushOrder(order) {
-    db.get('orders').push(order).write();
-  };
   function getBalances() {
     db.read();
     return db.get('balances').value();
@@ -73,8 +65,6 @@ module.exports = function() {
     setConfig,
     getSignals,
     pushSignal,
-    getOrders,
-    pushOrder,
     getBalances,
     setBalances
   };
