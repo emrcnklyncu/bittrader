@@ -168,12 +168,17 @@ module.exports = function (apiKey = null, apiSecret = null) {
     }
   };
 
-  let getTrades = async (pair) => {
-    let trades = await exchange.fetchMyTrades(pair);
-    for (t in trades) {
-      let trade = trades[t];
-      console.log(trade);
+  let getTrades = async (denominator, numerators) => {
+    let tx = [];
+    for (n in numerators) {
+      let numerator = numerators[n];
+      let symbol = numerator + denominator;
+      let pair = numerator + "/" + denominator;
+      let trades = await exchange.fetchMyTrades(pair);
+      trades.sort((a, b) => b.timestamp - a.timestamp);
+      tx.push({symbol, pair, trades});
     }
+    return tx;
   };
 
   return {

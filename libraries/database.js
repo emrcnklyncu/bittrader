@@ -24,7 +24,7 @@ let config = {
 /**
  * Set db default values.
  */
-db.defaults({ config: config, balances: [], signals: []}).write();
+db.defaults({ config: config, balances: [], trades: [], signals: []}).write();
 
 /**
  * If db exists, set db default values 
@@ -59,6 +59,13 @@ module.exports = function() {
   function setBalances(balances) {
     db.set('balances', balances).write();
   };
+  function getTrades() {
+    db.read();
+    return db.get('trades').value();
+  };
+  function setTrades(trades) {
+    db.set('trades', trades).write();
+  };
 
   return {
     getConfig,
@@ -66,6 +73,8 @@ module.exports = function() {
     getSignals,
     pushSignal,
     getBalances,
-    setBalances
+    setBalances,
+    getTrades,
+    setTrades
   };
 };

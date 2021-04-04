@@ -12,22 +12,11 @@ block content
         br
         a.text-danger(href='/logout' role='button') Logout
     .row
-      .col-md-12
+      .col-md-8.offset-md-2
         .card.card-body
           a.btn.btn-warning(data-toggle='collapse' href='#signals' role='button' aria-expanded='true' aria-controls='signals') # Signals #
           #signals.collapse.show.table-responsive
-            include partials/signals   
-      //.col-md-4
-        .card.card-body
-          a.btn.btn-success(data-toggle='collapse' href='#balances' role='button' aria-expanded='true' aria-controls='balances') # Balances #
-          #balances.collapse.show.table-responsive
-            include partials/balances
-    //.row
-      .col-md-12
-        .card.card-body
-          a.btn.btn-primary(data-toggle='collapse' href='#trades' role='button' aria-expanded='true' aria-controls='trades') # Trades #
-          #trades.collapse.show.table-responsive
-            include partials/trades
+            include partials/signals
       
 
         

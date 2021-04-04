@@ -1,0 +1,60 @@
+extends ./layout
+
+block content
+  .container-fluid.p-3
+    .row
+      .col-md-3.text-left
+        span.text-info bittrader 
+        br
+        small.text-light=fn.version
+      .col-md-3.text-right.offset-md-6
+        span.text-light.font-italic=fn.username
+        br
+        a.text-danger(href='/logout' role='button') Logout
+    if trades
+      for trade in trades
+        if trade.trades.length > 0 
+          .col-md-8.offset-md-2
+            .card.card-body
+              a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' #'
+              .collapse.table-responsive(id=trade.symbol)
+                table.table.table-striped.table-sm.table-dark.table-bordered(style='width:99%')
+                  th.text-centeread
+                    tr
+                      th.text-center(scope='col') #
+                      th.text-center Price
+                      th.text-center Amount
+                      th.text-center Cost
+                      th.text-center Time
+                  if trade.trades
+                    - let amount = 0
+                    - let cost = 0
+                    tbody
+                      for tx in trade.trades
+                        tr
+                          if "BUY" == tx.side.toUpperCase()
+                            - amount = amount + tx.amount
+                            - cost = cost - tx.cost
+                            td.text-center.text-success BUY
+                          else if "SELL" == tx.side.toUpperCase()
+                            - amount = amount - tx.amount
+                            - cost = cost + tx.cost
+                            td.text-center.text-danger SELL
+                          td.text-right=fn.formatMoney(tx.price, 4)
+                          td.text-right=fn.formatMoney(tx.amount, 4)
+                          td.text-right=fn.formatMoney(tx.cost, 4)
+                          td.text-left=fn.timeToDate(tx.timestamp)
+                      tr.bg-secondary 
+                        td.text-center TOTAL
+                        td.text-right
+                        td.text-right=fn.formatMoney(amount, 4)
+                        td.text-right=fn.formatMoney(cost, 4)
+                        if amount == 0 && cost > 0
+                          td.text-left.text-success GAIN
+                        else if amount == 0 && cost <= 0
+                          td.text-left.text-danger LOSS
+                        else 
+                          td.text-left.text-warning OPEN
+                           
+
+

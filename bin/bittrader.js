@@ -108,6 +108,16 @@ let checker = () => {
       return;
     }
   });
+  cron.schedule("*/1 * * * *", async () => {
+    try {
+      let trades = await client.getTrades(database.getConfig('denominator'), database.getConfig('numerators'));
+      database.setTrades(trades);
+    } catch (e) {
+      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
+      console.error(e);
+      return;
+    }
+  });
   cron.schedule("*/3 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor3Mins(database.getConfig('denominator'), database.getConfig('numerators'));
@@ -183,6 +193,15 @@ app.get('/', async function(req, res) {
   try {
     let signals = database.getSignals();
     res.render('dashboard', { title: 'Dashboard', signals: signals });
+  } catch(e) {
+    console.error(e);
+    res.status(500).send('server error');
+  }
+});
+app.get('/trade', async function(req, res) {
+  try {
+    let trades = database.getTrades();
+    res.render('trade', { title: 'Trade', trades: trades });
   } catch(e) {
     console.error(e);
     res.status(500).send('server error');
