@@ -54,16 +54,17 @@ app.use((req, res, next) => {
   if (auth) {
     if ('/logout' == req.path) {
       res.clearCookie('auth');
-      return res.redirect('/login');
+      return res.redirect('/');
     }
     let decipher = crypto.createDecipher(constant.SESSION_ALGORITHM, constant.SESSION_SECRET);
     let usernameAndPassword = decipher.update(auth, 'hex', 'utf8') + decipher.final('utf8');
     if ((database.getConfig('username') + database.getConfig('password')) == usernameAndPassword) {
+      res.locals.user = auth;
       if ('/login' == req.path) return res.redirect('/');
       return next();
     }
   }
-  if ('/login' != req.path) return res.redirect('/login');
+  if ('/login' != req.path && '/' != req.path) return res.redirect('/');
   return next();
 });
 
