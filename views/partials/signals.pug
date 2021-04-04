@@ -3,27 +3,29 @@ table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-c
     tr
       th.text-center(scope='col') #
       th.text-center Signal
+      th.text-center Period
+      th.text-center Check
       th.text-center Last
-      th.text-center RSI 0
-      th.text-center RSI 1
+      th.text-center RSI Pre
+      th.text-center RSI Last
       th.text-center BB Lower
       th.text-center BB Upper
-      th.text-center Period
       th.text-center Time
   if signals
     tbody
       for d in signals
         tr
-          th.text-center(scope='row')=d.numerator + '/' + d.denominator
+          th.text-center(scope='row')=d.pair
           if d.buysignal
             td.text-center.text-success BUY
           else if d.sellsignal 
             td.text-center.text-danger SELL
+          td.text-center=d.timeframe + '/' + d.period
+          td.text-center=d.rsilow + '/' + d.rsiupper + '/' + d.stddev
           td.text-right=fn.formatMoney(d.last, 4)
-          td.text-right=fn.formatMoney(d.rsi0, 4)
-          td.text-right=fn.formatMoney(d.rsi1, 4)
+          td.text-right=fn.formatMoney(d.rsipre, 4)
+          td.text-right=fn.formatMoney(d.rsilast, 4)
           td.text-right=fn.formatMoney(d.bblower, 4)
           td.text-right=fn.formatMoney(d.bbupper, 4)
-          td.text-right=d.period
           td.text-right=fn.timeToDate(d.time)
           

@@ -3,11 +3,26 @@ table.table.table-striped.table-sm.table-dark.table-bordered(style='width.text-c
     tr
       th.text-center(scope='col') #
       th.text-center Balance
+      th.text-center Purchasable
+      th.text-center Salable
   if balances
     tbody
+      - let totalMoney = 0;
       for d in balances
-        - let balance = Number.parseFloat(d.balance, 10);
-        if balance > 0.0001
-          tr
-            th.text-center(scope='row')=d.asset
-            td.text-right.text-success=fn.formatMoney(d.balance, d.precision)
+        - totalMoney = totalMoney + d.money
+        tr
+          th.text-center(scope='row')=d.asset
+          td.text-right.text-success=fn.formatMoney(d.free, 4)
+          if d.purchasable
+            th.text-center Yes 
+          else 
+            th.text-center.text-danger No
+          if d.salable
+            th.text-center Yes 
+          else 
+            th.text-center.text-danger No
+      tr 
+        th.text-center(scope='row') TOTAL
+        td.text-right.text-success=fn.formatMoney(totalMoney, 4)
+        th.text-center
+        th.text-center

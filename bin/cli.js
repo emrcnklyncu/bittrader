@@ -28,10 +28,11 @@ process.env.TZ = database.getConfig('timezone');
  */
  let connect = async (args) => {
   try {
-    await client.getAccountBalance(args.key, args.secret);
+    let balances = await client.getBalances(database.getConfig('denominator'), args.key, args.secret);
+    database.setBalances(balances);
   } catch (e) {
     console.error(`${chalk.red.bold('error: cannot access api.')}`);
-    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    console.error(e);
     return;
   }
   database.setConfig('key', args.key);
@@ -61,18 +62,10 @@ let config = async (args) => {
       database.setConfig('denominator', args.denominator);
     }
   }
-  if (args.expression) {
-    if (!cron.validate(args.expression)) {
-      console.error(`${chalk.red.bold('error: cron expression is invalid.')}\nplease click for more details of cron expression: ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}`);
-      return;
-    } else {
-      database.setConfig('expression', args.expression);
-    }
-  }
   if (args.orderamount) {
     let orderamount = Number.parseFloat(args.orderamount, 10);
-    if (Number.isNaN(orderamount) || orderamount < 20) {
-      console.error(`${chalk.red.bold('error: order amount must be greather then 20.')}`);
+    if (Number.isNaN(orderamount) || orderamount < constant.DEFAULT_ORDER_AMOUNT) {
+      console.error(chalk.red.bold(`error: order amount must be greather then ${constant.DEFAULT_ORDER_AMOUNT}.`));
       return;
     } else {
       database.setConfig('orderamount', orderamount);
@@ -111,8 +104,9 @@ let balance = async (args) => {
     return;
   }
   try {
-    let balances = await client.getAccountBalance(database.getConfig('key'), database.getConfig('secret'));
+    let balances = database.getBalances();
     console.log(`|${util.padRight('', 44, '-')}|`);
+    let totalMoney = 0;
     for (b in balances) {
       let balance = balances[b];
       if (args.hide) {
@@ -121,51 +115,15 @@ let balance = async (args) => {
           continue;
         }
       }
-      console.log(`| ${util.padRight(balance.asset, 5)} | ${util.padRight(balance.assetname, 15)} | ${util.padLeft(util.formatMoney(balance.balance, balance.precision), 16)} |`);
+      totalMoney = totalMoney + balance.money;
+      console.log(`| ${util.padRight(balance.asset, 5)} | ${util.padLeft(util.formatMoney(balance.free, 4), 16)} | ${util.padLeft(util.formatMoney(balance.money, 4), 16)}|`);
     }
     console.log(`|${util.padRight('', 44, '-')}|`);
+    console.log(`| ${util.padRight('TOTAL', 5)} ${util.padLeft('', 20)} ${util.padLeft(util.formatMoney(totalMoney, 4), 16)}|`);
+    console.log(`|${util.padRight('', 44, '-')}|`);
   } catch (e) {
-    console.error(`${chalk.red.bold('error: an error was encountered by api.')}`);
-    console.error(`${chalk.red.bold(e.code, e.text)}`);
-    return;
-  }
-};
-let order = async (args) => {
-  if (!database.getConfig('status') || constant.STATUS_BEGINNED == database.getConfig('status')) {
-    console.error(`${chalk.red.bold('error: trader is not yet connected to api. please use the [connect] command first.')}`);
-    return;
-  }
-  try {
-    let orders = database.getOrders();
-    if (orders && orders.length > 0) {
-      console.log(`|${util.padRight('', 140, '-')}|`);
-      console.log(`| ${util.padRight('pair', 9)} | ${util.padRight('status', 9)} | ${util.padLeft('price', 16)} | ${util.padLeft('amount', 16)} | ${util.padLeft('expense', 16)} | ${util.padLeft('income', 16)} | ${util.padLeft('gain/loss', 16)} | ${util.padRight('time', 19)} |`);
-      console.log(`|${util.padRight('', 140, '-')}|`);
-      for (t in orders) {
-        let tx = orders[t];
-        
-        if (tx.buytrx && !tx.selltrx) {
-          let expense = (Math.abs(Number(tx.buytrx.price)) * Math.abs(Number(tx.buytrx.amount))) + Math.abs(Number(tx.buytrx.fee)) + Math.abs(Number(tx.buytrx.tax));
-
-          let text = `| ${util.padRight(tx.numerator+'/'+tx.denominator, 9)} | ${util.padRight('open', 9)} | ${util.padLeft(util.formatMoney(tx.buytrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.buytrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft('- not sold -', 16)} | ${util.padLeft('- not sold -', 16)} | ${util.timeToDate(tx.time)} |`;
-          console.log(text);
-        }
-        if (tx.buytrx && tx.selltrx) {
-          let expense = (Math.abs(Number(tx.buytrx.price)) * Math.abs(Number(tx.buytrx.amount))) + Math.abs(Number(tx.buytrx.fee)) + Math.abs(Number(tx.buytrx.tax));
-          let income = Math.abs(Number(tx.selltrx.price)) * Math.abs(Number(tx.selltrx.amount));
-          let gainOrLoss = income - expense;
-
-          let text = `| ${util.padRight(tx.numerator+'/'+tx.denominator, 9)} | ${util.padRight('closed', 9)} | ${util.padLeft(util.formatMoney(tx.selltrx.price, 4), 16)} | ${util.padLeft(util.formatMoney(Math.abs(tx.selltrx.amount), 4), 16)} | ${util.padLeft(util.formatMoney(expense, 2), 16)} | ${util.padLeft(util.formatMoney(income, 2), 16)} | ${gainOrLoss < 0 ? chalk.red.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16)) : chalk.green.bold(util.padLeft(util.formatMoney(gainOrLoss, 2), 16))} | ${util.timeToDate(tx.time)} |`;
-          console.log(text);
-        }
-      }
-      console.log(`|${util.padRight('', 140, '-')}|`);
-    } else {
-      console.log(chalk.yellow.bold('no orders.'));
-    }
-  } catch (e) {
-    console.error(`${chalk.red.bold('error: an error was encountered by api.')}`);
-    console.error(`${chalk.red.bold(e.code, e.text)}`);
+    console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
+    console.error(e);
     return;
   }
 };
@@ -262,9 +220,8 @@ let callproc = async (args, proc) => {
   .option('--password <password>', `set password for web application (default: ${constant.DEFAULT_PASSWORD})`)
   .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
   .option('--timezone <timezone>', `set timezone for web application (default: ${constant.DEFAULT_TIMEZONE})`)
-  .option('--denominator <symbol>', `set denominator symbol of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
-  .option('--expression <expression>', `set controller cron expression (what's cron expression? ${chalk.yellow.underline('https://en.wikipedia.org/wiki/Cron#CRON_expression')}) (default: ${constant.DEFAULT_EXPRESSION})`)
-  .option('--orderamount <amount>', `set order amount for buy (min: 20) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
+  .option('--denominator <asset>', `set denominator of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
+  .option('--orderamount <amount>', `set order amount for buy (min: ${constant.DEFAULT_ORDER_AMOUNT}) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
   .option('--allowbuy', `if trader catches a buy signal, it automatically buys`)
   .option('--disallowbuy', `don't allow trader to automatically buys`)
   .option('--allowsell', `if trader catches a sell signal, it automatically sells`)
@@ -274,9 +231,6 @@ let callproc = async (args, proc) => {
   program.command('balance').description('show balance')
   .option('-h, --hide', `hide low balances`)
   .action(balance);
-
-  program.command('order').description('show orders')
-  .action(order);
 
   program.command('start').description('start trader').action(callproc);
   program.command('stop').description('stop trader').action(callproc);

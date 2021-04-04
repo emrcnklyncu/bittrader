@@ -15,7 +15,7 @@ let config = {
   port: constant.DEFAULT_PORT,
   timezone: constant.DEFAULT_TIMEZONE,
   denominator: constant.DEFAULT_DENOMINATOR,
-  expression: constant.DEFAULT_EXPRESSION,
+  numerators: constant.ACCEPTABLE_NUMERATORS,
   orderamount: constant.DEFAULT_ORDER_AMOUNT,
   allowbuy: false, 
   allowsell: false
@@ -24,7 +24,7 @@ let config = {
 /**
  * Set db default values.
  */
-db.defaults({ config: config, signals: [], orders: [], pairs: [] }).write();
+db.defaults({ config: config, balances: [], signals: [], orders: []}).write();
 
 /**
  * If db exists, set db default values 
@@ -45,24 +45,12 @@ module.exports = function() {
     if (config)
       db.set(`config.${config}`, value).write();
   };
-  function getSignals(denominator, time, limit) {
+  function getSignals() {
     db.read();
-    if (time)
-      return db.get('signals').filter({denominator: denominator, time: time}).sortBy('time').reverse().take(limit || 30).value();
-    return db.get('signals').filter({denominator: denominator}).sortBy('time').reverse().take(limit || 30).value();
+    return db.get('signals').sortBy('time').reverse().take(50).value();
   };
   function pushSignal(signal) {
     db.get('signals').push(signal).write();
-  };
-  function getPairs(denominator, minute, limit) {
-    db.read();
-    return db.get('pairs').filter({denominator: denominator, minute: minute}).sortBy('time').reverse().take(limit).reverse().value();
-  };
-  function removePairs(time) {
-    db.get('pairs').remove(pair => time > pair.time).write();
-  };
-  function pushPair(pair) {
-    db.get('pairs').push(pair).write();
   };
   function getOrders(where) {
     db.read();
@@ -75,17 +63,23 @@ module.exports = function() {
   function updateOrder(where, order) {
     db.get('orders').find(where).assign(order).write();
   };
+  function getBalances() {
+    db.read();
+    return db.get('balances').value();
+  };
+  function setBalances(balances) {
+    db.set('balances', balances).write();
+  };
 
   return {
     getConfig,
     setConfig,
     getSignals,
     pushSignal,
-    getPairs,
-    removePairs,
-    pushPair,
     getOrders,
     pushOrder,
-    updateOrder
+    updateOrder,
+    getBalances,
+    setBalances
   };
 };
