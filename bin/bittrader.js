@@ -207,6 +207,15 @@ app.get('/trade', async function(req, res) {
     res.status(500).send('server error');
   }
 });
+app.get('/balance', async function(req, res) {
+  try {
+    let balances = database.getBalances();
+    res.render('balance', { title: 'Balance', balances: balances });
+  } catch(e) {
+    console.error(e);
+    res.status(500).send('server error');
+  }
+});
 
 /**
  * Start Express server.
