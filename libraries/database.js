@@ -16,7 +16,7 @@ let config = {
   timezone: constant.DEFAULT_TIMEZONE,
   denominator: constant.DEFAULT_DENOMINATOR,
   numerators: constant.ACCEPTABLE_NUMERATORS,
-  orderamount: constant.DEFAULT_ORDER_AMOUNT,
+  amount: constant.DEFAULT_AMOUNT,
   allowbuy: false, 
   allowsell: false
 };
@@ -60,9 +60,6 @@ module.exports = function() {
   function pushOrder(order) {
     db.get('orders').push(order).write();
   };
-  function updateOrder(where, order) {
-    db.get('orders').find(where).assign(order).write();
-  };
   function getBalances() {
     db.read();
     return db.get('balances').value();
@@ -78,7 +75,6 @@ module.exports = function() {
     pushSignal,
     getOrders,
     pushOrder,
-    updateOrder,
     getBalances,
     setBalances
   };

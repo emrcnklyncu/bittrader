@@ -81,12 +81,21 @@ app.locals.fn = {
 /**
  * Methods.
  */
-let buy = async function(now, numerator) {
-  
+let evaluatingSignals = async (signals) => {
+  for (s in signals) {
+    let signal = signals[s];
+    database.pushSignal(signal);
+    if (signal.buysignal && database.getConfig("allowbuy")) {
+      let buy = await client.buy(signal, database.getConfig('amount'));
+      database.pushOrder(buy);
+    }
+    else if (signal.sellsignal && database.getConfig("allowsell")) {
+      let sell = await client.sell(signal);
+      database.pushOrder(sell);
+    }
+  }
 };
-let sell = async function(now, numerator) {
-  
-};
+
 /**
  * Run checker job.
  */
@@ -104,10 +113,7 @@ let checker = () => {
   cron.schedule("*/3 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor3Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      for (s in signals) {
-        let signal = signals[s];
-        database.pushSignal(signal);
-      }
+      await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -117,10 +123,7 @@ let checker = () => {
   cron.schedule("*/5 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor5Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      for (s in signals) {
-        let signal = signals[s];
-        database.pushSignal(signal);
-      }
+      await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -130,10 +133,7 @@ let checker = () => {
   cron.schedule("*/15 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor15Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      for (s in signals) {
-        let signal = signals[s];
-        database.pushSignal(signal);
-      }
+      await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -143,10 +143,7 @@ let checker = () => {
   cron.schedule("*/30 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor30Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      for (s in signals) {
-        let signal = signals[s];
-        database.pushSignal(signal);
-      }
+      await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -156,10 +153,7 @@ let checker = () => {
   cron.schedule("0 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor1Hour(database.getConfig('denominator'), database.getConfig('numerators'));
-      for (s in signals) {
-        let signal = signals[s];
-        database.pushSignal(signal);
-      }
+      await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);

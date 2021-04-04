@@ -5,8 +5,6 @@ const rsi = require('technicalindicators').RSI;
 const bb = require('technicalindicators').BollingerBands;
 const constant = require("./constant");
 
-const util = require("./util")();
-
 module.exports = function (apiKey = null, apiSecret = null) {
   let createExchange = (apiKey = null, apiSecret = null) => {
     if (!apiKey || !apiSecret) return null;
@@ -31,6 +29,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
       return false;
     }
   };
+
   let calculateBB = async function (lasts, stddev = 2) {
     //20 => is required for bb calculation
     //2 => stddev => standard deviation
@@ -39,6 +38,15 @@ module.exports = function (apiKey = null, apiSecret = null) {
     } else {
       return false;
     }
+  };
+
+  let getNumeratorBalance = async (numerator) => {
+    let balance = await exchange.fetchBalance();
+    for (b in balance.info.balances) {
+      let asset = balance.info.balances[b].asset;
+      if (asset == numerator) return Number.parseFloat(balance.info.balances[b].free, 10);
+    }
+    return 0;
   };
 
   let getBalances = async (denominator, apiKey = null, apiSecret = null) => {
@@ -96,7 +104,6 @@ module.exports = function (apiKey = null, apiSecret = null) {
             lasts.unshift(ohlcv[o][3]);
             times.unshift(ohlcv[o][0]);
           }
-          //console.log(pair, timeframe, inHour, periods, stddev, rsilow, rsiupper, times.map((t) => util.timeToDate(t)));
           if (lasts.length == 20) {
             let last = lasts[19];
             let rsi = await calculateRSI(lasts.slice(4, 20));
@@ -128,23 +135,39 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let getSignalsFor3Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "3m", 20, [1, 2]);
+    return getSignals(denominator, numerators, "3m", 20, [1, 2], 2, 30, 70);
   };
 
   let getSignalsFor5Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4], 1.8, 32, 68);
+    return getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4], 1.9, 31, 70);
   };
 
   let getSignalsFor15Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "15m", 4, [1, 2, 3, 4, 6, 8, 10, 12], 1.6, 34, 66);
+    return getSignals(denominator, numerators, "15m", 4, [1, 2, 3, 4, 6, 8, 10, 12], 1.8, 32, 70);
   };
 
   let getSignalsFor30Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "30m", 2, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.4, 36, 64);
+    return getSignals(denominator, numerators, "30m", 2, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.7, 33, 70);
   };
 
   let getSignalsFor1Hour = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "1h", 1, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.2, 38, 62);
+    return getSignals(denominator, numerators, "1h", 1, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.6, 34, 70);
+  };
+
+  let buy = async (signal, amount) => {
+    let balance = getNumeratorBalance(signal.denominator);
+    if (balance > 0 && balance > amount) {
+      return await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
+    }
+    return null;
+  };
+
+  let sell = async (signal) => {
+    let balance = getNumeratorBalance(signal.numerator);
+    if (balance > 0) {
+      return await exchange.createMarketSellOrder(signal.pair, balance);
+    }
+    return null;
   };
 
   return {
@@ -154,5 +177,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
     getSignalsFor15Mins,
     getSignalsFor30Mins,
     getSignalsFor1Hour,
+    buy,
+    sell
   };
 };

@@ -62,13 +62,13 @@ let config = async (args) => {
       database.setConfig('denominator', args.denominator);
     }
   }
-  if (args.orderamount) {
-    let orderamount = Number.parseFloat(args.orderamount, 10);
-    if (Number.isNaN(orderamount) || orderamount < constant.DEFAULT_ORDER_AMOUNT) {
-      console.error(chalk.red.bold(`error: order amount must be greather then ${constant.DEFAULT_ORDER_AMOUNT}.`));
+  if (args.amount) {
+    let amount = Number.parseFloat(args.amount, 10);
+    if (Number.isNaN(amount) || amount < constant.DEFAULT_AMOUNT) {
+      console.error(chalk.red.bold(`error: order amount must be greather then ${constant.DEFAULT_AMOUNT}.`));
       return;
     } else {
-      database.setConfig('orderamount', orderamount);
+      database.setConfig('amount', amount);
     }
   }
   if (args.username) {
@@ -110,8 +110,7 @@ let balance = async (args) => {
     for (b in balances) {
       let balance = balances[b];
       if (args.hide) {
-        let fbalance = Number.parseFloat(balance.balance, 10);
-        if (fbalance <= 0.0001) {
+        if (!balance.salable) {
           continue;
         }
       }
@@ -221,7 +220,7 @@ let callproc = async (args, proc) => {
   .option('--port <port>', `set port for web application (default: ${constant.DEFAULT_PORT})`)
   .option('--timezone <timezone>', `set timezone for web application (default: ${constant.DEFAULT_TIMEZONE})`)
   .option('--denominator <asset>', `set denominator of the pair (choices: ${constant.ACCEPTABLE_DENOMINATORS}) (default: ${constant.DEFAULT_DENOMINATOR})`)
-  .option('--orderamount <amount>', `set order amount for buy (min: ${constant.DEFAULT_ORDER_AMOUNT}) (default: ${constant.DEFAULT_ORDER_AMOUNT})`)
+  .option('--amount <value>', `set order amount for buy (min: ${constant.DEFAULT_AMOUNT}) (default: ${constant.DEFAULT_AMOUNT})`)
   .option('--allowbuy', `if trader catches a buy signal, it automatically buys`)
   .option('--disallowbuy', `don't allow trader to automatically buys`)
   .option('--allowsell', `if trader catches a sell signal, it automatically sells`)
