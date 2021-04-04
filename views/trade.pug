@@ -3,14 +3,18 @@ extends ./layout
 block content
   .container-fluid.p-3
     .row
-      .col-md-3.text-left
-        span.text-info bittrader 
-        br
-        small.text-light=fn.version
-      .col-md-3.text-right.offset-md-6
-        span.text-light.font-italic=fn.username
-        br
-        a.text-danger(href='/logout' role='button') Logout
+      .col-md-8.offset-md-2
+        .row
+          .col-md-3.text-left
+            span.text-info bittrader 
+            br
+            small.text-light=fn.version
+          .col-md-3.text-right.offset-md-6
+            span.text-light.font-italic=fn.username
+            br
+            a.text-danger(href='/logout' role='button') Logout
+    br
+    br
     if trades
       for trade in trades
         if trade.trades.length > 0 
