@@ -155,14 +155,14 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let buy = async (signal, amount) => {
-    let balance = getNumeratorBalance(signal.denominator);
+    let balance = await getNumeratorBalance(signal.denominator);
     if (balance > 0 && balance > amount) {
       await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
     }
   };
 
   let sell = async (signal) => {
-    let balance = getNumeratorBalance(signal.numerator);
+    let balance = await getNumeratorBalance(signal.numerator);
     if (balance > 0) {
       await exchange.createMarketSellOrder(signal.pair, balance);
     }
