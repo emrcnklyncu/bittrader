@@ -181,6 +181,17 @@ module.exports = function (apiKey = null, apiSecret = null) {
     return tx;
   };
 
+  let getMarkets = async (denominator) => {
+    let markets = [];
+    let allmarkets = await exchange.fetchMarkets();
+    for (m in allmarkets) {
+      let market = allmarkets[m];
+      if ('spot' == market.type && market.spot && market.active && denominator == market.quote)
+        markets.push(market);
+    }
+    return markets;
+  };
+
   return {
     getBalances,
     getSignalsFor3Mins,
@@ -190,6 +201,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
     getSignalsFor1Hour,
     buy,
     sell,
-    getTrades
+    getTrades,
+    getMarkets
   };
 };
