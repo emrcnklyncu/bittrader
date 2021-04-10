@@ -88,11 +88,23 @@ let evaluatingSignals = async (signals) => {
     database.pushSignal(signal);
     if (signal.buysignal && database.getConfig("allowbuy")) {
       await client.buy(signal, database.getConfig('amount'));
+      await cleanUpBalances();
+      await cleanUpTrades();
     }
     else if (signal.sellsignal && database.getConfig("allowsell")) {
       await client.sell(signal);
+      await cleanUpBalances();
+      await cleanUpTrades();
     }
   }
+};
+let cleanUpBalances = async () => {
+  let balances = await client.getBalances(database.getConfig('denominator'));
+  database.setBalances(balances);
+};
+let cleanUpTrades = async () => {
+  let trades = await client.getTrades(database.getConfig('denominator'), database.getConfig('numerators'));
+  database.setTrades(trades);
 };
 
 /**
@@ -101,8 +113,7 @@ let evaluatingSignals = async (signals) => {
 let checker = () => {
   cron.schedule("*/1 * * * *", async () => {
     try {
-      let balances = await client.getBalances(database.getConfig('denominator'));
-      database.setBalances(balances);
+      await cleanUpBalances();
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -111,18 +122,7 @@ let checker = () => {
   });
   cron.schedule("*/1 * * * *", async () => {
     try {
-      let trades = await client.getTrades(database.getConfig('denominator'), database.getConfig('numerators'));
-      database.setTrades(trades);
-    } catch (e) {
-      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
-      console.error(e);
-      return;
-    }
-  });
-  cron.schedule("*/3 * * * *", async () => {
-    try {
-      let signals = await client.getSignalsFor3Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      await evaluatingSignals(signals);
+      await cleanUpTrades();
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
       console.error(e);
@@ -132,36 +132,6 @@ let checker = () => {
   cron.schedule("*/5 * * * *", async () => {
     try {
       let signals = await client.getSignalsFor5Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      await evaluatingSignals(signals);
-    } catch (e) {
-      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
-      console.error(e);
-      return;
-    }
-  });
-  cron.schedule("*/15 * * * *", async () => {
-    try {
-      let signals = await client.getSignalsFor15Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      await evaluatingSignals(signals);
-    } catch (e) {
-      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
-      console.error(e);
-      return;
-    }
-  });
-  cron.schedule("*/30 * * * *", async () => {
-    try {
-      let signals = await client.getSignalsFor30Mins(database.getConfig('denominator'), database.getConfig('numerators'));
-      await evaluatingSignals(signals);
-    } catch (e) {
-      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
-      console.error(e);
-      return;
-    }
-  });
-  cron.schedule("0 * * * *", async () => {
-    try {
-      let signals = await client.getSignalsFor1Hour(database.getConfig('denominator'), database.getConfig('numerators'));
       await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);

@@ -139,7 +139,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let getSignalsFor5Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4], 1.9, 31, 70);
+    return getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4], 2, 30, 70);
   };
 
   let getSignalsFor15Mins = async (denominator, numerators) => {
