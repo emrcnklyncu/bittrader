@@ -20,9 +20,29 @@ block content
     if trades
       for trade in trades
         if trade.trades.length > 0 
+          - let amount = 0
+          - let cost = 0
+          - let buycost = 0
+          - let sellcost = 0
+          for tx in trade.trades
+            if "BUY" == tx.side.toUpperCase()
+              - amount = amount + tx.amount
+              - cost = cost - tx.cost
+              - buycost = buycost + tx.cost
+            else if "SELL" == tx.side.toUpperCase()
+              - amount = amount - tx.amount
+              - cost = cost + tx.cost
+              - sellcost = sellcost + tx.cost
+          - let percent = "SELL" == trade.trades[0].side.toUpperCase() ? sellcost / buycost * 100 : 0
+          - percent = percent == 0 ? percent : percent - 100
           .col-md-8.offset-md-2
             .card.card-body
-              a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' #'
+              if percent > 0
+                a.btn.btn-success(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' # (' + fn.formatMoney(cost, 4) + ' / ' + fn.formatMoney(percent, 2) + '%)'
+              else if percent < 0
+                a.btn.btn-danger(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' # (' + fn.formatMoney(cost, 4) + ' / ' + fn.formatMoney(percent, 2) + '%)'
+              else
+                a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' #'
               .collapse.table-responsive(id=trade.symbol)
                 table.table.table-striped.table-sm.table-dark.table-bordered(style='width:99%')
                   th.text-centeread
@@ -32,35 +52,16 @@ block content
                       th.text-center Amount
                       th.text-center Cost
                       th.text-center Time
-                  if trade.trades
-                    - let amount = 0
-                    - let cost = 0
-                    tbody
-                      for tx in trade.trades
-                        tr
-                          if "BUY" == tx.side.toUpperCase()
-                            - amount = amount + tx.amount
-                            - cost = cost - tx.cost
-                            td.text-center.text-success BUY
-                          else if "SELL" == tx.side.toUpperCase()
-                            - amount = amount - tx.amount
-                            - cost = cost + tx.cost
-                            td.text-center.text-danger SELL
-                          td.text-right=fn.formatMoney(tx.price, 4)
-                          td.text-right=fn.formatMoney(tx.amount, 4)
-                          td.text-right=fn.formatMoney(tx.cost, 4)
-                          td.text-left=fn.timeToDate(tx.timestamp)
-                      tr.bg-secondary 
-                        td.text-center TOTAL
-                        td.text-right
-                        td.text-right=fn.formatMoney(amount, 4)
-                        td.text-right=fn.formatMoney(cost, 4)
-                        if amount == 0 && cost > 0
-                          td.text-left.text-success GAIN
-                        else if amount == 0 && cost <= 0
-                          td.text-left.text-danger LOSS
-                        else 
-                          td.text-left.text-warning OPEN
-                           
+                  tbody
+                    for tx in trade.trades
+                      tr
+                        if "BUY" == tx.side.toUpperCase()
+                          td.text-center.text-success BUY
+                        else if "SELL" == tx.side.toUpperCase()
+                          td.text-center.text-danger SELL
+                        td.text-right=fn.formatMoney(tx.price, 4)
+                        td.text-right=fn.formatMoney(tx.amount, 4)
+                        td.text-right=fn.formatMoney(tx.cost, 4)
+                        td.text-left=fn.timeToDate(tx.timestamp)       
 
 
