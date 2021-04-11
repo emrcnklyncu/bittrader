@@ -50,50 +50,6 @@ module.exports = function (apiKey = null, apiSecret = null) {
     }
   };
 
-  let getNumeratorBalance = async (numerator) => {
-    let balance = await exchange.fetchBalance();
-    for (b in balance.info.balances) {
-      let asset = balance.info.balances[b].asset;
-      if (asset == numerator) return Number.parseFloat(balance.info.balances[b].free, 10);
-    }
-    return 0;
-  };
-
-  let getBalances = async (denominator, apiKey = null, apiSecret = null) => {
-    if (apiKey && apiSecret) exchange = createExchange(apiKey, apiSecret);
-    let balance = await exchange.fetchBalance();
-    let activeBalances = [];
-    for (b in balance.info.balances) {
-      let asset = balance.info.balances[b].asset;
-      let pair = asset + "/" + denominator;
-      let free = Number.parseFloat(balance.info.balances[b].free, 10);
-      let money = 0;
-      let purchasable = true;
-      if (free <= 0) continue;
-      if (asset == denominator) {
-        money = free;
-      } else {
-        try {
-          let ohlcv = await exchange.fetchOHLCV(pair, "1m", undefined, 1);
-          if (ohlcv && ohlcv[0] && ohlcv[0][3]) {
-            money = free * ohlcv[0][3];
-          }
-        } catch (e) {
-          purchasable = false;
-        }
-      }
-      activeBalances.push({
-        asset,
-        pair,
-        free,
-        money,
-        purchasable,
-        salable: money > 10,
-      });
-    }
-    return activeBalances.sort((a, b) => a.asset.localeCompare(b.asset));
-  };
-
   let getRuler = (denominator, numerator, hour = 6) => {
     for (r in ruler) {
       if (database.hasSignals('BUY', denominator, numerator, (r * 1 + 1) * hour))
@@ -172,18 +128,52 @@ module.exports = function (apiKey = null, apiSecret = null) {
     return await getSignals(denominator, numerators, "1h", 1, [1, 2, 3, 4, 6, 8, 10, 12, 24]);
   };
 
-  let buy = async (signal, amount) => {
-    let balance = await getNumeratorBalance(signal.denominator);
-    if (balance > 0 && balance > amount) {
-      await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
+  let getTickers = async (denominator, numerators) => {
+    let ts = [];
+    let tickers = await exchange.fetchTickers();
+    for (n in numerators) {
+      let numerator = numerators[n];
+      let pair = numerator + "/" + denominator;
+      if (tickers[pair]) {
+        let ticker = tickers[pair];
+        ts.push({denominator, numerator, open: ticker.open, close: ticker.close, high: ticker.high, low: ticker.low, last: ticker.last });
+      }
     }
+    return ts.sort((a, b) => a.numerator.localeCompare(b.numerator));
   };
 
-  let sell = async (signal) => {
-    let balance = await getNumeratorBalance(signal.numerator);
-    if (balance > 0) {
-      await exchange.createMarketSellOrder(signal.pair, balance);
+  let getNumeratorBalance = async (numerator) => {
+    let balance = await exchange.fetchBalance();
+    for (b in balance.info.balances) {
+      let asset = balance.info.balances[b].asset;
+      if (asset == numerator) return Number.parseFloat(balance.info.balances[b].free, 10);
     }
+    return 0;
+  };
+
+  let getBalances = async (denominator, apiKey = null, apiSecret = null) => {
+    if (apiKey && apiSecret) exchange = createExchange(apiKey, apiSecret);
+    let balance = await exchange.fetchBalance();
+    let activeBalances = [];
+    for (b in balance.info.balances) {
+      let asset = balance.info.balances[b].asset;
+      let pair = asset + "/" + denominator;
+      let free = Number.parseFloat(balance.info.balances[b].free, 10);
+      let money = 0;
+      let purchasable = true;
+      if (free <= 0) continue;
+      if (asset == denominator) {
+        money = free;
+      } else {
+        let ticker = database.getTicker(denominator, asset);
+        if (ticker)
+          money = free * ticker.last;
+        else
+          purchasable = false;
+      }
+      activeBalances.push({ asset, pair, free, money, purchasable, salable: money > 10 });
+    }
+    return activeBalances.sort((a, b) => a.asset.localeCompare(b.asset));
   };
 
   let getTrades = async (denominator, numerators) => {
@@ -210,16 +200,31 @@ module.exports = function (apiKey = null, apiSecret = null) {
     return markets;
   };
 
+  let buy = async (signal, amount) => {
+    let balance = await getNumeratorBalance(signal.denominator);
+    if (balance > 0 && balance > amount) {
+      await exchange.createMarketBuyOrder(signal.pair, amount / signal.last); 
+    }
+  };
+
+  let sell = async (signal) => {
+    let balance = await getNumeratorBalance(signal.numerator);
+    if (balance > 0) {
+      await exchange.createMarketSellOrder(signal.pair, balance);
+    }
+  };
+
   return {
-    getBalances,
     getSignalsFor3Mins,
     getSignalsFor5Mins,
     getSignalsFor15Mins,
     getSignalsFor30Mins,
     getSignalsFor1Hour,
-    buy,
-    sell,
+    getTickers,
+    getBalances,
     getTrades,
-    getMarkets
+    getMarkets,
+    buy,
+    sell
   };
 };

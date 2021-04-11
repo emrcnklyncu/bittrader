@@ -24,7 +24,7 @@ let config = {
 /**
  * Set db default values.
  */
-db.defaults({ config: config, balances: [], trades: [], signals: []}).write();
+db.defaults({ config: config, balances: [], trades: [], tickers: [], signals: []}).write();
 
 /**
  * If db exists, set db default values 
@@ -75,6 +75,20 @@ module.exports = function() {
   function setTrades(trades) {
     db.set('trades', trades).write();
   };
+  function getTicker(denominator, numerator) {
+    db.read();
+    let tickers = db.get('tickers').filter({ denominator, numerator }).value();
+    if (tickers.length == 1)
+      return tickers[0];
+    return null;
+  };
+  function getTickers() {
+    db.read();
+    return db.get('tickers').value();
+  };
+  function setTickers(tickers) {
+    db.set('tickers', tickers).write();
+  };
 
   return {
     getConfig,
@@ -85,6 +99,9 @@ module.exports = function() {
     getBalances,
     setBalances,
     getTrades,
-    setTrades
+    setTrades,
+    getTicker,
+    getTickers,
+    setTickers
   };
 };

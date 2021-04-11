@@ -88,15 +88,21 @@ let evaluatingSignals = async (signals) => {
     database.pushSignal(signal);
     if (signal.buysignal && database.getConfig("allowbuy")) {
       await client.buy(signal, database.getConfig('amount'));
+      await cleanUpTickers();
       await cleanUpBalances();
       await cleanUpTrades();
     }
     else if (signal.sellsignal && database.getConfig("allowsell")) {
       await client.sell(signal);
+      await cleanUpTickers();
       await cleanUpBalances();
       await cleanUpTrades();
     }
   }
+};
+let cleanUpTickers = async () => {
+  let tickers = await client.getTickers(database.getConfig('denominator'), database.getConfig('numerators'));
+  database.setTickers(tickers);
 };
 let cleanUpBalances = async () => {
   let balances = await client.getBalances(database.getConfig('denominator'));
@@ -107,21 +113,15 @@ let cleanUpTrades = async () => {
   database.setTrades(trades);
 };
 
+
 /**
  * Run checker job.
  */
 let checker = () => {
   cron.schedule("*/1 * * * *", async () => {
     try {
+      await cleanUpTickers();
       await cleanUpBalances();
-    } catch (e) {
-      console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
-      console.error(e);
-      return;
-    }
-  });
-  cron.schedule("*/1 * * * *", async () => {
-    try {
       await cleanUpTrades();
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);
