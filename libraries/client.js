@@ -4,6 +4,7 @@ const ccxt = require("ccxt");
 const rsi = require('technicalindicators').RSI;
 const bb = require('technicalindicators').BollingerBands;
 const database = require('./database')();
+const util = require('./util')();
 const constant = require("./constant");
 
 const ruler = [
@@ -104,7 +105,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
         }
       }
     }
-    //console.log(new Date().getTime() - time);
+    console.log('Pass Time for Get Signals: ' + (new Date().getTime() - time) + ' - Start: ' + util.timeToDate(time));
     return signals;
   };
 
@@ -177,6 +178,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let getTrades = async (denominator, numerators) => {
+    let time = new Date().getTime();
     let tx = [];
     for (n in numerators) {
       let numerator = numerators[n];
@@ -184,8 +186,40 @@ module.exports = function (apiKey = null, apiSecret = null) {
       let pair = numerator + "/" + denominator;
       let trades = await exchange.fetchMyTrades(pair);
       trades.sort((a, b) => b.timestamp - a.timestamp);
-      tx.push({symbol, pair, numerator, denominator, trades});
+      if (trades.length > 0) {
+        let amount = 0;
+        let cost = 0
+        let buycost = 0
+        let sellcost = 0 
+        let percent = 0;
+        let status = null;
+        for (t in trades) {
+          let trade = trades[t];
+          if ('BUY' == trade.side.toUpperCase()) {
+            amount = amount + trade.amount;
+            cost = cost - trade.cost;
+            buycost = buycost + trade.cost;
+          } else if ('SELL' == trade.side.toUpperCase()) {
+            amount = amount - trade.amount;
+            cost = cost + trade.cost;
+            sellcost = sellcost + trade.cost;
+          }
+        }
+        if ('BUY' == trades[0].side.toUpperCase()) {
+          status = 'OPEN';
+          let ticker = database.getTicker(denominator, numerator);
+          if (ticker) {
+            sellcost = sellcost + (amount * ticker.last);
+            percent = (sellcost / buycost * 100) - 100;
+          }
+        } else if ('SELL' == trades[0].side.toUpperCase()) {
+          status = 'CLOSED';
+          percent = (sellcost / buycost * 100) - 100;
+        }
+        tx.push({symbol, pair, numerator, denominator, status, amount, cost, percent, trades});
+      }
     }
+    console.log('Pass Time for Get Trades: ' + (new Date().getTime() - time) + ' - Start: ' + util.timeToDate(time));
     return tx.sort((a, b) => a.numerator.localeCompare(b.numerator));
   };
 

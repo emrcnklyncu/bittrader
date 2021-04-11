@@ -91,13 +91,13 @@ let evaluatingSignals = async (signals) => {
       await client.buy(signal, database.getConfig('amount'));
       await cleanUpTickers();
       await cleanUpBalances();
-      await cleanUpTrades();
+      //TODO: await cleanUpTrades();
     }
     else if (signal.sellsignal && database.getConfig("allowsell")) {
       await client.sell(signal);
       await cleanUpTickers();
       await cleanUpBalances();
-      await cleanUpTrades();
+      //TODO: await cleanUpTrades();
     }
   }
 };

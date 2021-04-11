@@ -22,29 +22,30 @@ block content
     if trades
       for trade in trades
         if trade.trades.length > 0 
-          - let amount = 0
-          - let cost = 0
-          - let buycost = 0
-          - let sellcost = 0
-          for tx in trade.trades
-            if "BUY" == tx.side.toUpperCase()
-              - amount = amount + tx.amount
-              - cost = cost - tx.cost
-              - buycost = buycost + tx.cost
-            else if "SELL" == tx.side.toUpperCase()
-              - amount = amount - tx.amount
-              - cost = cost + tx.cost
-              - sellcost = sellcost + tx.cost
-          - let percent = "SELL" == trade.trades[0].side.toUpperCase() ? sellcost / buycost * 100 : 0
-          - percent = percent == 0 ? percent : percent - 100
           .col-md-8.offset-md-2
             .card.card-body
-              if percent > 0
-                a.btn.btn-success(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' # (' + fn.formatMoney(cost, 4) + ' / ' + fn.formatMoney(percent, 2) + '%)'
-              else if percent < 0
-                a.btn.btn-danger(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' # (' + fn.formatMoney(cost, 4) + ' / ' + fn.formatMoney(percent, 2) + '%)'
+              if trade.status == 'OPEN'
+                a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)
+                  .row
+                    .col-md-4= '# ' + trade.pair + ' #'
+                    .col-md-4 OPEN
+                    if trade.percent > 0
+                      .col-md-4.text-success=fn.formatMoney(trade.percent, 2) + '%'
+                    else 
+                      .col-md-4.text-danger=fn.formatMoney(trade.percent, 2) + '%'
               else
-                a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)= '# ' + trade.pair + ' #'
+                if trade.percent > 0
+                  a.btn.btn-success(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)
+                    .row
+                      .col-md-4= '# ' + trade.pair + ' #'
+                      .col-md-4=fn.formatMoney(trade.cost, 2) + '$'
+                      .col-md-4=fn.formatMoney(trade.percent, 2) + '%'
+                else
+                  a.btn.btn-danger(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)
+                    .row
+                      .col-md-4= '# ' + trade.pair + ' #'
+                      .col-md-4=fn.formatMoney(trade.cost, 2) + '$'
+                      .col-md-4=fn.formatMoney(trade.percent, 2) + '%'
               .collapse.table-responsive(id=trade.symbol)
                 table.table.table-striped.table-sm.table-dark.table-bordered(style='width:99%')
                   th.text-centeread
