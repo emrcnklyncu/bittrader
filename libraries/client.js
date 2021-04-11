@@ -98,7 +98,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
     }
   };
 
-  let getRuler = (denominator, numerator, hour = 4) => {
+  let getRuler = (denominator, numerator, hour = 6) => {
     for (r in ruler) {
       if (database.hasSignals('BUY', denominator, numerator, (r * 1 + 1) * hour))
         return ruler[r];
