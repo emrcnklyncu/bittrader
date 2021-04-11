@@ -3,7 +3,17 @@ const axios = require("axios");
 const ccxt = require("ccxt");
 const rsi = require('technicalindicators').RSI;
 const bb = require('technicalindicators').BollingerBands;
+const database = require('./database')();
 const constant = require("./constant");
+
+const ruler = [
+  {stddev: 2, rsilow: 30, rsiupper: 70},
+  {stddev: 1.9, rsilow: 31, rsiupper: 70},
+  {stddev: 1.8, rsilow: 32, rsiupper: 70},
+  {stddev: 1.7, rsilow: 33, rsiupper: 70},
+  {stddev: 1.6, rsilow: 34, rsiupper: 70},
+  {stddev: 1.5, rsilow: 35, rsiupper: 70},
+];
 
 module.exports = function (apiKey = null, apiSecret = null) {
   let createExchange = (apiKey = null, apiSecret = null) => {
@@ -88,11 +98,23 @@ module.exports = function (apiKey = null, apiSecret = null) {
     }
   };
 
-  let getSignals = async (denominator, numerators, timeframe, inHour, periods, stddev = 2, rsilow = 30, rsiupper = 70) => {
+  let getRuler = (denominator, numerator, hour = 4) => {
+    for (r in ruler) {
+      if (database.hasSignals('BUY', denominator, numerator, (r * 1 + 1) * hour))
+        return ruler[r];
+    }
+    return ruler[ruler.length - 1];
+  };
+
+  let getSignals = async (denominator, numerators, timeframe, inHour, periods) => {
     let time = new Date().getTime();
     let signals = [];
     for (n in numerators) {
       let numerator = numerators[n];
+      let ruler = getRuler(denominator, numerator);
+      let stddev = ruler.stddev;
+      let rsilow = ruler.rsilow;
+      let rsiupper = ruler.rsiupper;
       let pair = numerator + "/" + denominator;
       let ohlcv = await exchange.fetchOHLCV(pair, timeframe, undefined, 1000);
       for (p in periods) {
@@ -135,23 +157,23 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let getSignalsFor3Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "3m", 20, [1, 2], 2, 30, 70);
+    return await getSignals(denominator, numerators, "3m", 20, [1, 2]);
   };
 
   let getSignalsFor5Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4], 2, 30, 70);
+    return await getSignals(denominator, numerators, "5m", 12, [1, 2, 3, 4]);
   };
 
   let getSignalsFor15Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "15m", 4, [1, 2, 3, 4, 6, 8, 10, 12], 1.8, 32, 70);
+    return await getSignals(denominator, numerators, "15m", 4, [1, 2, 3, 4, 6, 8, 10, 12]);
   };
 
   let getSignalsFor30Mins = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "30m", 2, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.7, 33, 70);
+    return await getSignals(denominator, numerators, "30m", 2, [1, 2, 3, 4, 6, 8, 10, 12, 24]);
   };
 
   let getSignalsFor1Hour = async (denominator, numerators) => {
-    return getSignals(denominator, numerators, "1h", 1, [1, 2, 3, 4, 6, 8, 10, 12, 24], 1.6, 34, 70);
+    return await getSignals(denominator, numerators, "1h", 1, [1, 2, 3, 4, 6, 8, 10, 12, 24]);
   };
 
   let buy = async (signal, amount) => {
@@ -176,7 +198,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
       let pair = numerator + "/" + denominator;
       let trades = await exchange.fetchMyTrades(pair);
       trades.sort((a, b) => b.timestamp - a.timestamp);
-      tx.push({symbol, pair, trades});
+      tx.push({symbol, pair, numerator, denominator, trades});
     }
     return tx;
   };

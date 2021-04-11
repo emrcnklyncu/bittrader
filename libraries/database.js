@@ -45,9 +45,18 @@ module.exports = function() {
     if (config)
       db.set(`config.${config}`, value).write();
   };
+  function hasSignals(type, denominator, numerator, hour = 1) {
+    let now = new Date().getTime();
+    let buysignal = false;
+    let sellsignal = false;
+    if ('BUY' == type) buysignal = true;
+    if ('SELL' == type) sellsignal = true;
+    db.read();
+    return db.get('signals').filter({ denominator, numerator, buysignal, sellsignal }).value().filter((signal) => signal.time > now - (hour * 60 * 60 * 1000)).length > 0;
+  };
   function getSignals() {
     db.read();
-    return db.get('signals').sortBy('time').reverse().take(50).value();
+    return db.get('signals').sortBy('time').reverse().take(200).value();
   };
   function pushSignal(signal) {
     db.get('signals').push(signal).write();
@@ -70,6 +79,7 @@ module.exports = function() {
   return {
     getConfig,
     setConfig,
+    hasSignals,
     getSignals,
     pushSignal,
     getBalances,
