@@ -75,6 +75,7 @@ app.locals.fn = {
   version: package.version,
   description: package.description,
   username: database.getConfig('username'),
+  denominator: database.getConfig('denominator'),
   timeToDate : util.timeToDate,
   formatMoney : util.formatMoney
 };
@@ -100,19 +101,21 @@ let evaluatingSignals = async (signals) => {
     }
   }
 };
+
 let cleanUpTickers = async () => {
   let tickers = await client.getTickers(database.getConfig('denominator'), database.getConfig('numerators'));
   database.setTickers(tickers);
 };
+
 let cleanUpBalances = async () => {
   let balances = await client.getBalances(database.getConfig('denominator'));
   database.setBalances(balances);
 };
+
 let cleanUpTrades = async () => {
   let trades = await client.getTrades(database.getConfig('denominator'), database.getConfig('numerators'));
   database.setTrades(trades);
 };
-
 
 /**
  * Run checker job.

@@ -29,6 +29,7 @@ block content
                 tr
                   th.text-center(scope='col') #
                   th.text-center Balance
+                  th.text-center Money
                   th.text-center Purchasable
                   th.text-center Salable
               if balances
@@ -38,8 +39,12 @@ block content
                     - totalMoney = totalMoney + d.money
                     if d.purchasable || d.salable
                       tr
-                        th.text-center(scope='row')=d.asset
+                        if fn.denominator == d.asset
+                          th.text-center.text-info(scope='row')=d.asset
+                        else
+                          th.text-center(scope='row')=d.asset
                         td.text-right.text-success=fn.formatMoney(d.free, 4)
+                        td.text-right.text-info=fn.formatMoney(d.money, 2)
                         if d.purchasable
                           th.text-center Yes 
                         else 
@@ -48,8 +53,9 @@ block content
                           th.text-center Yes 
                         else 
                           th.text-center.text-danger No
-                  tr 
-                    th.text-center(scope='row') TOTAL
-                    td.text-right.text-success=fn.formatMoney(totalMoney, 4)
+                  tr.text-secondary
+                    th.text-center.text-info(scope='row') TOTAL
+                    th.text-center
+                    td.text-right.text-info=fn.formatMoney(totalMoney, 2)
                     th.text-center
                     th.text-center
