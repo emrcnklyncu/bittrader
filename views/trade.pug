@@ -10,7 +10,7 @@ block content
             br
             small.text-light=fn.version
           .col-md-6.text-center
-            p#time.text-warning
+            p#time.text-warning=fn.timeToDate(new Date().getTime(), true)
           .col-md-3.text-right
             span.text-light.font-italic=fn.username
             br
