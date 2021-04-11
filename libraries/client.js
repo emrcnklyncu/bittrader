@@ -60,42 +60,38 @@ module.exports = function (apiKey = null, apiSecret = null) {
   };
 
   let getBalances = async (denominator, apiKey = null, apiSecret = null) => {
-    try {
-      if (apiKey && apiSecret) exchange = createExchange(apiKey, apiSecret);
-      let balance = await exchange.fetchBalance();
-      let activeBalances = [];
-      for (b in balance.info.balances) {
-        let asset = balance.info.balances[b].asset;
-        let pair = asset + "/" + denominator;
-        let free = Number.parseFloat(balance.info.balances[b].free, 10);
-        let money = 0;
-        let purchasable = true;
-        if (free <= 0) continue;
-        if (asset == denominator) {
-          money = free;
-        } else {
-          try {
-            let ohlcv = await exchange.fetchOHLCV(pair, "1m", undefined, 1);
-            if (ohlcv && ohlcv[0] && ohlcv[0][3]) {
-              money = free * ohlcv[0][3];
-            }
-          } catch (e) {
-            purchasable = false;
+    if (apiKey && apiSecret) exchange = createExchange(apiKey, apiSecret);
+    let balance = await exchange.fetchBalance();
+    let activeBalances = [];
+    for (b in balance.info.balances) {
+      let asset = balance.info.balances[b].asset;
+      let pair = asset + "/" + denominator;
+      let free = Number.parseFloat(balance.info.balances[b].free, 10);
+      let money = 0;
+      let purchasable = true;
+      if (free <= 0) continue;
+      if (asset == denominator) {
+        money = free;
+      } else {
+        try {
+          let ohlcv = await exchange.fetchOHLCV(pair, "1m", undefined, 1);
+          if (ohlcv && ohlcv[0] && ohlcv[0][3]) {
+            money = free * ohlcv[0][3];
           }
+        } catch (e) {
+          purchasable = false;
         }
-        activeBalances.push({
-          asset,
-          pair,
-          free,
-          money,
-          purchasable,
-          salable: money > 10,
-        });
       }
-      return activeBalances;
-    } catch (e) {
-      throw e;
+      activeBalances.push({
+        asset,
+        pair,
+        free,
+        money,
+        purchasable,
+        salable: money > 10,
+      });
     }
+    return activeBalances.sort((a, b) => a.asset.localeCompare(b.asset));
   };
 
   let getRuler = (denominator, numerator, hour = 6) => {
@@ -200,7 +196,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
       trades.sort((a, b) => b.timestamp - a.timestamp);
       tx.push({symbol, pair, numerator, denominator, trades});
     }
-    return tx;
+    return tx.sort((a, b) => a.numerator.localeCompare(b.numerator));
   };
 
   let getMarkets = async (denominator) => {
