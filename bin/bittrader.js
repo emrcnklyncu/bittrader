@@ -132,9 +132,9 @@ let checker = () => {
       return;
     }
   });
-  cron.schedule("*/5 * * * *", async () => {
+  cron.schedule("*/3 * * * *", async () => {
     try {
-      let signals = await client.getSignalsFor5Mins(database.getConfig('denominator'), database.getConfig('numerators'));
+      let signals = await client.getSignalsFor3Mins(database.getConfig('denominator'), database.getConfig('numerators'));
       await evaluatingSignals(signals);
     } catch (e) {
       console.error(`${chalk.red.bold('error: an unknown error has occurred. please try again.')}`);

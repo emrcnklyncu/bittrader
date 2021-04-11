@@ -136,7 +136,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
       let pair = numerator + "/" + denominator;
       if (tickers[pair]) {
         let ticker = tickers[pair];
-        ts.push({denominator, numerator, open: ticker.open, close: ticker.close, high: ticker.high, low: ticker.low, last: ticker.last });
+        ts.push({denominator, numerator, open: ticker.open, close: ticker.close, high: ticker.high, last: ticker.last });
       }
     }
     return ts.sort((a, b) => a.numerator.localeCompare(b.numerator));
