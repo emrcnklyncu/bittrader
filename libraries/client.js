@@ -90,6 +90,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
               let rsilast = rsi[1];
               let bblower = bb[0].lower;
               let bbupper = bb[0].upper;
+              //TODO: let percent = database.getPercentOfTrade('OPEN', denominator, numerator);
               if (rsipre <= rsilow && rsilast > rsilow && bblower >= last) {
                 buysignal = true;
               } else if (rsipre >= rsiupper && rsilast < rsiupper && bbupper <= last) {
@@ -210,6 +211,7 @@ module.exports = function (apiKey = null, apiSecret = null) {
           let ticker = database.getTicker(denominator, numerator);
           if (ticker) {
             sellcost = sellcost + (amount * ticker.last);
+            cost = sellcost - buycost;
             percent = (sellcost / buycost * 100) - 100;
           }
         } else if ('SELL' == trades[0].side.toUpperCase()) {

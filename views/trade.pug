@@ -28,10 +28,11 @@ block content
                 a.btn.btn-warning(data-toggle='collapse' href='#' + trade.symbol role='button' aria-controls=trade.symbol)
                   .row
                     .col-md-4= '# ' + trade.pair + ' #'
-                    .col-md-4 OPEN
                     if trade.percent > 0
+                      .col-md-4.text-success=fn.formatMoney(trade.cost, 2) + '$'
                       .col-md-4.text-success=fn.formatMoney(trade.percent, 2) + '%'
                     else 
+                      .col-md-4.text-danger=fn.formatMoney(trade.cost, 2) + '$'
                       .col-md-4.text-danger=fn.formatMoney(trade.percent, 2) + '%'
               else
                 if trade.percent > 0

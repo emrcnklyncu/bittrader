@@ -68,6 +68,13 @@ module.exports = function() {
   function setBalances(balances) {
     db.set('balances', balances).write();
   };
+  function getPercentOfTrade(status, denominator, numerator) {
+    db.read();
+    let trades = db.get('trades').filter({ denominator, numerator, status }).value();
+    if (trades.length == 1)
+      return trades[0].percent;
+    return null;
+  };
   function getTrades() {
     db.read();
     return db.get('trades').value();
@@ -98,6 +105,7 @@ module.exports = function() {
     pushSignal,
     getBalances,
     setBalances,
+    getPercentOfTrade,
     getTrades,
     setTrades,
     getTicker,

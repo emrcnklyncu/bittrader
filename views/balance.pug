@@ -37,7 +37,7 @@ block content
                   - let totalMoney = 0;
                   for d in balances
                     - totalMoney = totalMoney + d.money
-                    if d.purchasable || d.salable
+                    if d.purchasable && d.salable
                       tr
                         if fn.denominator == d.asset
                           th.text-center.text-info(scope='row')=d.asset
